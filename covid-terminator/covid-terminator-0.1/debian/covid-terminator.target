@@ -1,0 +1,6 @@
+[Unit]
+Description=Covid Terminator Target
+Documentation=man:systemd:special(7)
+Requires=covid-post-terminate.service
+After=covid-post-terminate.service
+AllowIsolate=no

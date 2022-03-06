@@ -1,0 +1,82 @@
+
+https://wiki.debian.org/Multistrap
+https://manpages.debian.org/bullseye/multistrap/multistrap.1.en.html
+
+# multistrap merges packages from different repositories to make complete, bootable, root filesystems (rootfs).
+
+# debootstrap depends on nothing but shell, wget, binutils and thus can run pretty-much anywhere
+# multistrap uses apt and dpkg directly so can only work on a debian system
+
+# multistrap creates a rootfs which just needs to be mounted (or chrooted) and configured with
+#     dpkg --configure -a
+
+$ apt install multistrap
+
+$ multistrap --help
+multistrap version 2.2.10
+Usage:
+ multistrap [-a ARCH] [-d DIR] -f CONFIG_FILE
+ multistrap -?|-h|--help|--version
+
+Command:
+ -f|--file CONFIG_FILE:  path to the multistrap configuration file.
+
+Options:
+ -a|--arch ARCHITECTURE: override the configuration file architecture.
+ -d|--dir PATH:          override the configuration file directory.
+    --no-auth:           do not use Secure Apt for any repositories
+    --tidy-up:           remove apt cache data and downloaded archives.
+    --dry-run:           output the configuration and exit
+    --simulate:          output the configuration and exit
+ -?|-h|--help:           print this usage message and exit
+ --version:              print this usage message and exit
+
+multistrap replaces debootstrap to provide support for multiple
+repositories, using a configuration file to specify the relevant suites,
+architecture, extra packages and the mirror to use for each repository.
+
+Example configuration:
+[General]
+arch=armel
+directory=/opt/multistrap/
+# same as --tidy-up option if set to true
+cleanup=true
+# same as --no-auth option if set to true
+# keyring packages listed in each bootstrap will
+# still be installed.
+noauth=false
+# extract all downloaded archives (default is true)
+unpack=true
+# enable MultiArch for the specified architectures
+# default is empty
+multiarch=
+# aptsources is a list of sections to be used for downloading packages
+# and lists and placed in the /etc/apt/sources.list.d/multistrap.sources.list
+# of the target. Order is not important
+aptsources=Debian
+# the order of sections is not important.
+# the bootstrap option determines which repository
+# is used to calculate the list of Priority: required packages.
+bootstrap=Debian
+
+[Debian]
+packages=
+source=http://http.debian.net/debian
+keyring=debian-archive-keyring
+suite=stable
+
+This will result in a completely normal bootstrap of Debian stable from
+the specified mirror, for armel in /opt/multistrap/.
+
+'Architecture' and 'directory' can be overridden on the command line.
+
+Specify a package to extend the bootstap to include that package and
+all dependencies. Dependencies will be calculated by apt so as to use
+only the most recent suitable version from all configured repositories.
+
+General settings:
+
+'directory' specifies the top level directory where the bootstrap
+will be created - it is not packed into a .tgz once complete.
+
+

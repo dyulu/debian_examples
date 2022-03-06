@@ -1,0 +1,32 @@
+
+$ debc --help
+Usage: debc [options] [.changes file] [package ...]
+  Display the contents of the .deb or .udeb file(s) just created, as listed
+  in the generated .changes file or the .changes file specified.
+  If packages are listed, only display those specified packages
+  from the .changes file.  Options:
+    --no-conf or      Don't read devscripts config files;
+      --noconf          must be the first option given
+    -a<arch>          Search for changes file made for Debian build <arch>
+    -t<target>        Search for changes file made for GNU <target> arch
+    --debs-dir DIR    Look for the changes and debs files in DIR instead of
+                      the parent of the current package directory
+    --list-changes    only list the .changes file
+    --list-debs       only list the .deb files; don't display their contents
+    --multi           Search for multiarch .changes file made by dpkg-cross
+    --check-dirname-level N
+                      How much to check directory names:
+                      N=0   never
+                      N=1   only if program changes directory (default)
+                      N=2   always
+    --check-dirname-regex REGEX
+                      What constitutes a matching directory name; REGEX is
+                      a Perl regular expression; the string `PACKAGE' will
+                      be replaced by the package name; see manpage for details
+                      (default: 'PACKAGE(-.+)?')
+    --help            Show this message
+    --version         Show version and copyright information
+
+Default settings modified by devscripts configuration files:
+  (none)
+

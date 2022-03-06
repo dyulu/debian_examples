@@ -1,0 +1,137 @@
+
+$ dch --help
+Usage: dch [options] [changelog entry]
+Options:
+  -a, --append
+         Append a new entry to the current changelog
+  -i, --increment
+         Increase the Debian release number, adding a new changelog entry
+  -v <version>, --newversion=<version>
+         Add a new changelog entry with version number specified
+  -e, --edit
+         Don't change version number or add a new changelog entry, just
+         opens an editor
+  -r, --release
+         Update the changelog timestamp. If the distribution is set to
+         "UNRELEASED", change it to unstable (or another distribution as
+         specified by --distribution, or the name of the current development
+         release when run under Ubuntu).
+  --force-save-on-release
+         When --release is used and an editor opened to allow inspection
+         of the changelog, require the user to save the changelog their
+         editor opened.  Otherwise, the original changelog will not be
+         modified. (default)
+  --no-force-save-on-release
+         Do not do so. Note that a dummy changelog entry may be supplied
+         in order to achieve the same effect - e.g. dch --release ""
+         The entry will not be added to the changelog but its presence will
+         suppress the editor
+  --create
+         Create a new changelog (default) or NEWS file (with --news) and
+         open for editing
+  --empty
+         When creating a new changelog, don't add any changes to it
+         (i.e. only include the header and trailer lines)
+  --package <package>
+         Specify the package name when using --create (optional)
+  --auto-nmu
+         Attempt to intelligently determine whether a change to the
+         changelog represents an NMU (default)
+  --no-auto-nmu
+         Do not do so
+  -n, --nmu
+         Increment the Debian release number for a non-maintainer upload
+  --bin-nmu
+         Increment the Debian release number for a binary non-maintainer upload
+  -q, --qa
+         Increment the Debian release number for a Debian QA Team upload
+  -R, --rebuild
+         Increment the Debian release number for a no-change rebuild
+  -s, --security
+         Increment the Debian release number for a Debian Security Team upload
+  --lts
+         Increment the Debian release number for a LTS Security Team upload
+  --team
+         Increment the Debian release number for a team upload
+  -U, --upstream
+         Increment the Debian release number without any appended derivative
+         distribution name
+  --bpo
+         Increment the Debian release number for a backports upload
+         to "bullseye-backports"
+  --stable
+         Increment the Debian release number for a stable upload.
+  -l, --local <suffix>
+         Add a suffix to the Debian version number for a local build
+  -b, --force-bad-version
+         Force a version to be less than the current one (e.g., when
+         backporting)
+  --allow-lower-version <pattern>
+         Allow a version to be less than the current one (e.g., when
+         backporting) if it matches the specified pattern
+  --force-distribution
+         Force the provided distribution to be used, even if it doesn't match
+         the list of known distributions
+  --closes nnnnn[,nnnnn,...]
+         Add entries for closing these bug numbers,
+         getting bug titles from the BTS (bug-tracking system, bugs.debian.org)
+  --[no]query
+         [Don't] try contacting the BTS to get bug titles (default: do query)
+  -d, --fromdirname
+         Add a new changelog entry with version taken from the directory name
+  -p, --preserve
+         Preserve the directory name
+  --no-preserve
+         Do not preserve the directory name (default)
+  --vendor <vendor>
+         Override the distributor ID from dpkg-vendor.
+  -D, --distribution <dist>
+         Use the specified distribution in the changelog entry being edited
+  -u, --urgency <urgency>
+         Use the specified urgency in the changelog entry being edited
+  -c, --changelog <changelog>
+         Specify the name of the changelog to use in place of debian/changelog
+         No directory traversal or checking is performed in this case.
+  --news <newsfile>
+         Specify that the newsfile (default debian/NEWS) is to be edited
+  --[no]multimaint
+         When appending an entry to a changelog section (-a), [do not]
+         indicate if multiple maintainers are now involved (default: do so)
+  --[no]multimaint-merge
+         When appending an entry to a changelog section, [do not] merge the
+         entry into an existing changelog section for the current author.
+         (default: do not)
+  -m, --maintmaint
+         Don't change (maintain) the maintainer details in the changelog entry
+  -M, --controlmaint
+         Use maintainer name and email from the debian/control Maintainer field
+  -t, --mainttrailer
+         Don't change (maintain) the trailer line in the changelog entry; i.e.
+         maintain the maintainer and date/time details
+  --check-dirname-level N
+         How much to check directory names:
+         N=0   never
+         N=1   only if program changes directory (default)
+         N=2   always
+  --check-dirname-regex REGEX
+         What constitutes a matching directory name; REGEX is
+         a Perl regular expression; the string `PACKAGE' will
+         be replaced by the package name; see manpage for details
+         (default: 'PACKAGE(-.+)?')
+  --no-conf, --noconf
+         Don't read devscripts config files; must be the first option given
+  --release-heuristic log|changelog
+         Select heuristic used to determine if a package has been released.
+         (default: changelog)
+  --help, -h
+         Display this help message and exit
+  --version
+         Display version information
+  At most one of -a, -i, -e, -r, -v, -d, -n, --bin-nmu, -q, --qa, -R, -s,
+  --lts, --team, --bpo, --stable, -l (or their long equivalents) may be used.
+  With no options, one of -i or -a is chosen by looking at the release
+  specified in the changelog.
+
+Default settings modified by devscripts configuration files:
+  (none)
+

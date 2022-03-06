@@ -1,0 +1,66 @@
+
+http://www.tldp.org/HOWTO/Bootdisk-HOWTO/
+http://www.tldp.org/HOWTO/From-PowerUp-To-Bash-Prompt-HOWTO.html
+http://www.linuxfromscratch.org/lfs/view/stable/
+
+https://kernel.org/doc/Documentation/filesystems/ramfs-rootfs-initramfs.txt
+https://kernel.org/doc/Documentation/driver-api/early-userspace/early_userspace_support.rst
+
+https://landley.net/writing/rootfs-intro.html
+https://landley.net/writing/rootfs-howto.html
+https://landley.net/writing/rootfs-programming.html
+
+https://manpages.ubuntu.com/manpages/xenial/man8/initramfs-tools.8.html
+https://wiki.debian.org/initramfs
+
+ramfs:
+Simple filesystem that exports Linux's disk caching mechanisms as a dynamically resizable RAM-based filesystem
+Basically mounting the disk cache as a filesystem
+No backing store: write data cannot be flushed, so dirty cache are never marked clean
+                  keeping writing would fill up all memory
+Only root (or a trusted user) should be allowed write access to a ramfs mount
+
+ramdisk:
+Created a synthetic block device out of an area of RAM and used it as backing store for a filesystem
+Fixed sizes
+Unnecessarily copying memory between the fake block device and the page cache
+Need a filesystem driver, e.g., ext4, to format and interpret this data
+
+tmpfs:
+A ramfs derivative with size limits and the ability to write the data to swap space
+Normal users can be allowed write access to tmpfs mounts
+
+rootfs:
+A special instance of ramfs (or tmpfs, if that's enabled, CONFIG_TMPFS)
+To force ramfs, add "rootfstype=ramfs" to the kernel command line
+
+initramfs:
+Linux kernels contain a gzipped "cpio" format archive
+It is extracted into rootfs when the kernel boots up
+After extracting, the kernel checks to see if rootfs contains a file "init"
+If found, it executes it as PID 1
+This init process is responsible for bringing the system the rest of the way up, including locating and mounting the
+    real root device (if any)
+If not found, the kernel will fall through to the older code to locate and mount a root partition, then exec some
+    variant of /sbin/init out of that
+
+Differences between initramfs and the old initrd:
+The old initrd was always a separate file, while the initramfs archive is linked into the linux kernel image.
+    The directory linux-*/usr is devoted to generating this archive during the build
+The old initrd file was a gzipped filesystem image (in some file format, such as ext2, that needed a driver built into
+    the kernel), while the new initramfs archive is a gzipped cpio archive
+The program run by the old initrd (which was called /initrd, not /init) did some setup and then returned to the kernel,
+    while the init program from initramfs is not expected to return to the kernel
+When switching another root device, initrd would pivot_root and then umount the ramdisk. initramfs is rootfs: you can
+    neither pivot_root rootfs, nor unmount it.
+    Instead delete everything out of rootfs to free up the space (find -xdev / -exec rm '{}' ';'), overmount rootfs
+    with the new root (cd /newmount; mount --move . /; chroot .), attach stdin/stdout/stderr to the new /dev/console,
+    and exec the new init.
+    Since this is a remarkably persnickety process (and involves deleting commands before you can run them), the klibc
+    package introduced a helper program (utils/run_init.c) to do all this for you.  Most other packages (such as busybox)
+    have named this command "switch_root".
+
+Populating initramfs:
+CONFIG_INITRAMFS_SOURCE can be used to specify a source for initramfs archive, which will automatically be incorporated
+    into the resulting kernel binary
+

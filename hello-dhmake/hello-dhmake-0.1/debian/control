@@ -1,0 +1,15 @@
+Source: hello-dhmake
+Section: unknown
+Priority: optional
+Maintainer: Covid Terminator <covid.terminator@covid-terminator.org>
+Build-Depends: debhelper (>= 11)
+Standards-Version: 4.1.3
+Homepage: <insert the upstream URL, if relevant>
+#Vcs-Browser: https://salsa.debian.org/debian/hello-dhmake
+#Vcs-Git: https://salsa.debian.org/debian/hello-dhmake.git
+
+Package: hello-dhmake
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Description: <insert up to 60 chars description>
+ <insert long description, indented with spaces>

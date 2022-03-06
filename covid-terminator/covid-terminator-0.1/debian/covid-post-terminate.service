@@ -1,0 +1,16 @@
+[Unit]
+Description=Post Covid Terminating
+ConditionVirtualization=true
+DefaultDependencies=false
+Requires=covid-pre-terminate.service covid-terminate.service
+After=covid-pre-terminate.service covid-terminate.service
+
+[Service]
+Type=oneshot
+ExecStart=/bin/echo "Post-covid-terminating..."
+RemainAfterExit=yes
+StandardError=tty
+
+[Install]
+RequiredBy=covid-terminator.target
+WantedBy=multi-user.target

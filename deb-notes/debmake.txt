@@ -1,0 +1,73 @@
+
+# debmake helps to build a Debian package from the upstream source
+
+$ sudo apt install debmake
+
+$  debmake -h
+I: set parameters
+usage: debmake [-h] [-c | -k] [-n | -a package-version.tar.gz | -d | -t]
+               [-p package] [-u version] [-r revision] [-z extension]
+               [-b binarypackage[:type]] [-e foo@example.org]
+               [-f "firstname lastname"] [-i [debuild|pdebuild|...] | -j]
+               [-l "license_file"] [-m] [-o "file"] [-q] [-s] [-v] [-w args]
+               [-x [01234]] [-y] [-L] [-P] [-T]
+
+debmake: make Debian source package    Version: 4.3.1
+Copyright © 2014-2018 Osamu Aoki <osamu@debian.org>
+
+debmake helps to build the Debian package from the upstream source.
+Normally, this is done as follows:
+ * The upstream tarball is downloaded as the package-version.tar.gz file.
+ * It is untared to create many files under the package-version/ directory.
+ * debmake is invoked in the package-version/ directory possibly without any arguments.
+ * Files in the package-version/debian/ directory are manually adjusted.
+ * dpkg-buildpackage (usually from its wrapper debuild or pdebuild) is invoked in the package-version/ directory to make debian packages.
+
+  -t, --tar             run "tar" to generate upstream tarball and use it
+  -p package, --package package
+                        set the Debian package name
+  -u version, --upstreamversion version
+                        set the upstream package version
+  -r revision, --revision revision
+                        set the Debian package revision
+  -z extension, --targz extension
+                        set the tarball type,
+                        extension=(tar.gz|tar.bz2|tar.xz)
+  -b binarypackage[:type], --binaryspec binarypackage[:type]
+                        set binary package specs as comma separated list of
+                        "binarypackage":"type" pairs, e.g., in full form
+                        "foo:bin,foo-doc:doc,libfoo1:lib,libfoo-dev:dev" or in
+                        short form ",-doc,libfoo1, libfoo-dev". Here,
+                        "binarypackage" is the binary package name; and
+                        optional "type" is chosen from "bin", "data", "dev",
+                        "doc", "lib", "perl", "python", "python3", "ruby", and
+                        "script". If "type" is not specified but obvious, it
+                        is set by "binarypackage". Otherwise it is set to
+                        "bin" for the compiled ELF binary.
+  -e foo@example.org, --email foo@example.org
+                        set e-mail address
+  -f "firstname lastname", --fullname "firstname lastname"
+                        set the fullname
+  -i [debuild|pdebuild|...], --invoke [debuild|pdebuild|...]
+                        invoke package build tool
+  -j, --judge           run "dpkg-depcheck" to judge build dependencies and
+                        identify file paths
+  -l "license_file", --license "license_file"
+                        add formatted license to debian/copyright
+  -m, --monoarch        force packages to be non-multiarch
+  -o "file", --option "file"
+                        read optional parameters from "file"
+  -q, --quitearly       quit early before creating files in the debian
+                        directory
+  -s, --spec            use upstream spec
+  -v, --version         show version information
+  -w args, --with args  set additional "dh --with" option arguments
+  -x [01234], --extra [01234]
+                        generate extra configuration files as templates
+  -y, --yes             "force yes" for all prompts
+  -L, --local           generate configuration files for the local package
+  -P, --pedantic        pedantically check auto-generated files
+  -T, --tutorial        output tutorial comment lines in template files
+
+See debmake(1) manpage for more.
+

@@ -1,0 +1,30 @@
+#!/usr/bin/make -f
+# Forces the debhelper tool to make a fine grained build report
+# Remove it before releasing
+export DH_VERBOSE = 1
+
+%:
+	dh $@ --with systemd
+
+# override_dh_installsystemd:
+
+override_dh_systemd_enable:
+	dh_systemd_enable -pcovid-terminator --name=covid-pre-terminate
+	dh_systemd_enable -pcovid-terminator --name=covid-terminate
+	dh_systemd_enable -pcovid-terminator --name=covid-post-terminate
+	dh_systemd_enable -pcovid-terminator
+
+override_dh_installinit:
+	dh_installinit -pcovid-terminator --name=covid-pre-terminate
+	dh_installinit -pcovid-terminator --name=covid-terminate
+	dh_installinit -pcovid-terminator --name=covid-post-terminate
+#	dh_installinit -pcovid-terminator
+
+#override_dh_systemd_start:
+#	dh_systemd_start -pcovid-terminator --name=covid-pre-terminate
+#	dh_systemd_start -pcovid-terminator --name=covid-terminate
+#	dh_systemd_start -pcovid-terminator --name=covid-post-terminate
+#	dh_systemd_start -pcovid-terminator
+
+override_dh_usrlocal:
+

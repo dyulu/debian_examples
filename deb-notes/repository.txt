@@ -1,0 +1,9 @@
+
+https://wiki.debian.org/DebianRepository/Setup?action=show&redirect=HowToSetupADebianRepository
+
+reprepro: local Debian package repository storing files in a pool/ directory
+https://salsa.debian.org/brlink/reprepro/-/blob/debian/docs/short-howto
+
+aptly: manage local repositories, snapshot them and publish
+https://www.aptly.info/tutorial/
+

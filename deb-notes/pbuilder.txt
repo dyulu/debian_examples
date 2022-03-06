@@ -1,0 +1,135 @@
+
+https://pbuilder-docs.readthedocs.io/en/latest/
+https://wiki.ubuntu.com/PbuilderHowto
+
+pbuilder: Personal Builder, an automatic Debian Package Building system for personal development workstation environments
+          Aims to be an easy-to-setup system for auto-building Debian packages inside a clean-room environment
+          The clean-room environment is achieved through the use of a base chroot image, so that only minimal packages
+          will be installed inside the chroot.
+          Used for creating and maintaining chroot environment and building Debian package in the chroot 
+
+# Dependency: arch-test debootstrap eatmydata libeatmydata1
+# Suggest: ubuntu-archive-keyring squid-deb-proxy-client cowdancer gdebi-core
+$ sudo apt install pbuilder
+
+# Creating a base chroot image tar-ball base.tgz for the specified distribution
+# Default distribution: sid
+# Default base.tgz path: /var/cache/pbuilder/base.tgz
+# List the contents of base.tgz: tar -tf /var/cache/pbuilder/base.tgz
+$ sudo pbuilder create
+$ tree /var/cache/pbuilder/
+/var/cache/pbuilder/
+├── aptcache
+│   ├── adduser_3.118_all.deb
+│   ├── apt_2.3.15_amd64.deb
+......
+│   └── zlib1g_1%3a1.2.11.dfsg-2_amd64.deb
+├── base.tgz
+├── build
+├── ccache
+├── pbuildd
+├── pbuilder-mnt
+└── result
+
+# Updating the base.tga
+# Extract the chroot, invoke apt-get update and apt-get dist-upgrade inside the chroot, and then recreate the base.tgz
+$ sudo pbuilder update
+
+# Building a package inside the chroot
+# The binary and source packages will be stored in /var/cache/pbuilder/result/
+#     Extract base.tgz to a temporary working directory
+#     Enter the directory with chroot
+#     Populate the chroot with build-dependencies by parsing debian/control and invoking apt-get
+#     Build the packages; save results and remove the temporary working directory
+# Example: rebuild grep
+$ apt-get source grep
+$ sudo pbuilder build *.dsc
+$ tree /var/cache/pbuilder/result/
+/var/cache/pbuilder/result/
+├── grep_3.3-1_amd64.buildinfo
+├── grep_3.3-1_amd64.changes
+├── grep_3.3-1_amd64.deb
+├── grep_3.3-1.debian.tar.xz
+├── grep_3.3-1.dsc
+├── grep_3.3.orig.tar.xz
+└── grep-dbgsym_3.3-1_amd64.deb
+
+
+# pdebuild: pbuilder way of doing debuild; comes with the pbuilder package
+#           run from the source tree containing the debian directory
+#    pdebuild calls dpkg-source to build the source packages
+#    then invokes pbuilder on the resulting source package
+
+# Configuration file
+# /etc/pbuilderrc and $HOME/.pbuilderrc are read in when pbuilder is invoked
+# $HOME/.pbuilderrc supersede system settings
+# https://www.mankier.com/5/pbuilderrc
+
+# Building packages as non-root inside the chroot
+# BUILDUSERID: set to a value for a user id that does not already exist on the system
+# BUILDUSERNAME: used together with fakeroot for pbuilder to build packages
+
+$ pbuilder --help
+pbuilder - a personal builder
+Copyright 2001-2007 Junichi Uekawa
+Distributed under GNU Public License version 2 or later
+
+pbuilder [operation] [pbuilder-options]
+pdebuild [pdebuild-options] -- [pbuilder-options]
+
+command lines operations:
+pbuilder create [--basetgz base.tgz-path] [--distribution sid|experimental|...]
+  Creates a base.tgz
+
+pbuilder update [--basetgz base.tgz-path] [--distribution sid|experimental|...]
+  Updates a base.tgz
+
+pbuilder build [--basetgz base.tgz-path] pbuilder_2.2.0-1.dsc
+  Builds using the base.tgz. Requires a .dsc filename
+
+pbuilder clean
+  Cleans the temporal build directory.
+
+pbuilder login
+  Opens a shell into a throw-away chroot.
+
+pbuilder execute -- [script] [script options]
+  Logs into the build environment and executes "script".  The script is copied
+  into the chroot and invoked.
+
+pbuilder dumpconfig
+  Dumps configuration information to stdout for debugging.
+
+pbuilder main options:
+ --basetgz [base.tgz location]
+ --buildplace [location of build]
+ --mirror [mirror location]
+ --othermirror [other mirrors location in apt deb-line format, delimited with | signs]
+ --http-proxy [proxy]
+ --distribution [distribution (sid|experimental|...)]
+ --architecture [architecture]
+ --components [components]
+ --buildresult [location-to-copy-build-result]
+ --aptcache [location of retrieved package files]
+ --extrapackages [packages-to-add on pbuilder create]
+ --configfile [configuration file to load]
+ --hookdir [hook directory]
+ --debbuildopts [dpkg-buildpackage options]
+ --logfile [filename to output log]
+ --aptconfdir [overriding apt config dir]
+ --timeout [timeout time]
+ --override-config
+ --binary-arch
+ --preserve-buildplace
+ --bindmounts [bind-mount-point]
+ --debug
+ --debootstrapopts [debootstrap options]
+ --save-after-login/--save-after-exec
+
+pdebuild-specific pbuilder options:
+ --auto-debsign
+ --debsign-k [keyid]
+ --pbuilder [builder]
+
+For the full documentation see the manual pages pbuilder(8) and pbuilderrc(5).
+

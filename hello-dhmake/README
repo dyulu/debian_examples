@@ -1,0 +1,286 @@
+
+$ cat ~/.bashrc
+# ~/.bashrc: executed by bash(1) for non-login shells.
+
+# Note: PS1 and umask are already set in /etc/profile. You should not
+# need this unless you want different defaults for root.
+# PS1='${debian_chroot:+($debian_chroot)}\h:\w\$ '
+# umask 022
+
+# You may uncomment the following lines if you want `ls' to be colorized:
+# export LS_OPTIONS='--color=auto'
+# eval "`dircolors`"
+# alias ls='ls $LS_OPTIONS'
+# alias ll='ls $LS_OPTIONS -l'
+# alias l='ls $LS_OPTIONS -lA'
+#
+# Some more alias to avoid making mistakes:
+# alias rm='rm -i'
+# alias cp='cp -i'
+# alias mv='mv -i'
+DEBEMAIL='covid.terminator@covid-terminator.org'
+DEBFULLNAME='Covid Terminator'
+export DEBEMAIL DEBFULLNAME
+
+
+$ hello-dhmake/
+├── hello-dhmake-0.1
+│   ├── Makefile
+│   └── src
+│       └── covid-terminator.c
+└── README
+
+2 directories, 3 files
+
+$ ~/hello-dhmake/hello-dhmake-0.1# dh_make -n
+Type of package: (single, indep, library, python)
+[s/i/l/p]?
+Maintainer Name     : Covid Terminator
+Email-Address       : covid.terminator@covid-terminator.org
+Date                : Sun, 06 Mar 2022 15:09:38 -0500
+Package Name        : hello-dhmake
+Version             : 0.1
+License             : gpl3
+Package Type        : single
+Are the details correct? [Y/n/q]
+Done. Please edit the files in the debian/ subdirectory now.
+
+$ ~/hello-dhmake/hello-dhmake-0.1# tree ..
+..
+├── hello-dhmake-0.1
+│   ├── debian
+│   │   ├── changelog
+│   │   ├── compat
+│   │   ├── control
+│   │   ├── copyright
+│   │   ├── hello-dhmake.cron.d.ex
+│   │   ├── hello-dhmake.doc-base.EX
+│   │   ├── hello-dhmake-docs.docs
+│   │   ├── manpage.1.ex
+│   │   ├── manpage.sgml.ex
+│   │   ├── manpage.xml.ex
+│   │   ├── menu.ex
+│   │   ├── postinst.ex
+│   │   ├── postrm.ex
+│   │   ├── preinst.ex
+│   │   ├── prerm.ex
+│   │   ├── README
+│   │   ├── README.Debian
+│   │   ├── README.source
+│   │   ├── rules
+│   │   └── source
+│   │       └── format
+│   ├── Makefile
+│   └── src
+│       └── covid-terminator.c
+└── README
+
+4 directories, 23 files
+
+$ ~/hello-dhmake/hello-dhmake-0.1# debuild -rfakeroot -b -uc -us
+ dpkg-buildpackage -rfakeroot -us -uc -ui -b
+dpkg-buildpackage: warning: using a gain-root-command while being root
+dpkg-buildpackage: info: source package hello-dhmake
+dpkg-buildpackage: info: source version 0.1
+dpkg-buildpackage: info: source distribution unstable
+dpkg-buildpackage: info: source changed by Covid Terminator <covid.terminator@covid-terminator.org>
+ dpkg-source --before-build .
+dpkg-buildpackage: info: host architecture amd64
+ fakeroot debian/rules clean
+dh clean
+   dh_auto_clean
+	make -j2 clean
+make[1]: Entering directory '/root/hello-dhmake/hello-dhmake-0.1'
+rm -f src/covid-terminator
+make[1]: Leaving directory '/root/hello-dhmake/hello-dhmake-0.1'
+   dh_clean
+ debian/rules build
+dh build
+   dh_update_autotools_config
+   dh_autoreconf
+   dh_auto_configure
+   dh_auto_build
+	make -j2 "INSTALL=install --strip-program=true"
+make[1]: Entering directory '/root/hello-dhmake/hello-dhmake-0.1'
+# CFLAGS=
+gcc  src/covid-terminator.c -o src/covid-terminator 
+make[1]: Leaving directory '/root/hello-dhmake/hello-dhmake-0.1'
+   dh_auto_test
+   create-stamp debian/debhelper-build-stamp
+ fakeroot debian/rules binary
+dh binary
+   dh_testroot
+   dh_prep
+   dh_auto_install
+	make -j2 install DESTDIR=/root/hello-dhmake/hello-dhmake-0.1/debian/hello-dhmake AM_UPDATE_INFO_DIR=no "INSTALL=install --strip-program=true"
+make[1]: Entering directory '/root/hello-dhmake/hello-dhmake-0.1'
+install -d /root/hello-dhmake/hello-dhmake-0.1/debian/hello-dhmake/bin/
+install src/covid-terminator /root/hello-dhmake/hello-dhmake-0.1/debian/hello-dhmake/bin/
+make[1]: Leaving directory '/root/hello-dhmake/hello-dhmake-0.1'
+   dh_installdocs
+   dh_installchangelogs
+   dh_perl
+   dh_link
+   dh_strip_nondeterminism
+   dh_compress
+   dh_fixperms
+   dh_missing
+   dh_strip
+   dh_makeshlibs
+   dh_shlibdeps
+   dh_installdeb
+   dh_gencontrol
+   dh_md5sums
+   dh_builddeb
+dpkg-deb: building package 'hello-dhmake-dbgsym' in '../hello-dhmake-dbgsym_0.1_amd64.deb'.
+dpkg-deb: building package 'hello-dhmake' in '../hello-dhmake_0.1_amd64.deb'.
+ dpkg-genbuildinfo --build=binary
+Can't stat /usr/local/bin: No such file or directory
+ at /usr/share/perl5/Dpkg/Vendor/Debian.pm line 469.
+ dpkg-genchanges --build=binary >../hello-dhmake_0.1_amd64.changes
+dpkg-genchanges: info: binary-only upload (no source code included)
+ dpkg-source --after-build .
+dpkg-buildpackage: info: binary-only upload (no source included)
+Now running lintian hello-dhmake_0.1_amd64.changes ...
+warning: the authors of lintian do not recommend running it with root privileges!
+W: hello-dhmake-dbgsym: debug-file-with-no-debug-symbols usr/lib/debug/.build-id/a6/16a6fa3df08b6d54b25b1c82a7ed8c21a92e55.debug
+E: hello-dhmake: helper-templates-in-copyright
+W: hello-dhmake: copyright-has-url-from-dh_make-boilerplate
+E: hello-dhmake: copyright-contains-dh_make-todo-boilerplate
+W: hello-dhmake: readme-debian-contains-debmake-template
+E: hello-dhmake: description-is-dh_make-template
+E: hello-dhmake: section-is-dh_make-template
+W: hello-dhmake: superfluous-clutter-in-homepage <insert the upstream URL, if relevant>
+W: hello-dhmake: bad-homepage <insert the upstream URL, if relevant>
+W: hello-dhmake: binary-without-manpage bin/covid-terminator
+Finished running lintian.
+
+$ ~# tree hello-dhmake/
+hello-dhmake/
+├── hello-dhmake-0.1
+│   ├── debian
+│   │   ├── changelog
+│   │   ├── compat
+│   │   ├── control
+│   │   ├── copyright
+│   │   ├── debhelper-build-stamp
+│   │   ├── files
+│   │   ├── hello-dhmake
+│   │   │   ├── bin
+│   │   │   │   └── covid-terminator
+│   │   │   ├── DEBIAN
+│   │   │   │   ├── control
+│   │   │   │   └── md5sums
+│   │   │   └── usr
+│   │   │       └── share
+│   │   │           └── doc
+│   │   │               └── hello-dhmake
+│   │   │                   ├── changelog.gz
+│   │   │                   ├── copyright
+│   │   │                   └── README.Debian
+│   │   ├── hello-dhmake.cron.d.ex
+│   │   ├── hello-dhmake.doc-base.EX
+│   │   ├── hello-dhmake-docs.docs
+│   │   ├── hello-dhmake.substvars
+│   │   ├── manpage.1.ex
+│   │   ├── manpage.sgml.ex
+│   │   ├── manpage.xml.ex
+│   │   ├── menu.ex
+│   │   ├── postinst.ex
+│   │   ├── postrm.ex
+│   │   ├── preinst.ex
+│   │   ├── prerm.ex
+│   │   ├── README
+│   │   ├── README.Debian
+│   │   ├── README.source
+│   │   ├── rules
+│   │   └── source
+│   │       └── format
+│   ├── Makefile
+│   └── src
+│       ├── covid-terminator
+│       └── covid-terminator.c
+├── hello-dhmake_0.1_amd64.build
+├── hello-dhmake_0.1_amd64.buildinfo
+├── hello-dhmake_0.1_amd64.changes
+├── hello-dhmake_0.1_amd64.deb
+├── hello-dhmake-dbgsym_0.1_amd64.deb
+└── README
+
+11 directories, 38 files
+
+$ ~/hello-dhmake/hello-dhmake-0.1# debuild -rfakeroot -Tclean
+ dpkg-buildpackage -rfakeroot -us -uc -ui -Tclean
+dpkg-buildpackage: warning: using a gain-root-command while being root
+dpkg-buildpackage: info: source package hello-dhmake
+dpkg-buildpackage: info: source version 0.1
+dpkg-buildpackage: info: source distribution unstable
+dpkg-buildpackage: info: source changed by Covid Terminator <covid.terminator@covid-terminator.org>
+ fakeroot debian/rules clean
+dh clean
+   dh_auto_clean
+	make -j2 clean
+make[1]: Entering directory '/root/hello-dhmake/hello-dhmake-0.1'
+rm -f src/covid-terminator
+make[1]: Leaving directory '/root/hello-dhmake/hello-dhmake-0.1'
+   dh_clean
+Now running lintian hello-dhmake_0.1_amd64.changes ...
+warning: the authors of lintian do not recommend running it with root privileges!
+E: hello-dhmake: helper-templates-in-copyright
+W: hello-dhmake: copyright-has-url-from-dh_make-boilerplate
+E: hello-dhmake: copyright-contains-dh_make-todo-boilerplate
+W: hello-dhmake: readme-debian-contains-debmake-template
+E: hello-dhmake: description-is-dh_make-template
+E: hello-dhmake: section-is-dh_make-template
+W: hello-dhmake: superfluous-clutter-in-homepage <insert the upstream URL, if relevant>
+W: hello-dhmake: bad-homepage <insert the upstream URL, if relevant>
+W: hello-dhmake: binary-without-manpage bin/covid-terminator
+W: hello-dhmake-dbgsym: debug-file-with-no-debug-symbols usr/lib/debug/.build-id/a6/16a6fa3df08b6d54b25b1c82a7ed8c21a92e55.debug
+Finished running lintian.
+Now signing changes and any dsc files...
+ signfile buildinfo hello-dhmake_0.1_amd64.buildinfo Covid Terminator <covid.terminator@covid-terminator.org>
+gpg: keybox '/root/.gnupg/pubring.kbx' created
+gpg: skipped "Covid Terminator <covid.terminator@covid-terminator.org>": No secret key
+gpg: /tmp/debsign.Whtbqa3Q/hello-dhmake_0.1_amd64.buildinfo: clear-sign failed: No secret key
+debsign: gpg error occurred!  Aborting....
+debuild: fatal error at line 1112:
+running debsign failed
+
+$ ~/hello-dhmake/hello-dhmake-0.1# tree ..
+..
+├── hello-dhmake-0.1
+│   ├── debian
+│   │   ├── changelog
+│   │   ├── compat
+│   │   ├── control
+│   │   ├── copyright
+│   │   ├── hello-dhmake.cron.d.ex
+│   │   ├── hello-dhmake.doc-base.EX
+│   │   ├── hello-dhmake-docs.docs
+│   │   ├── manpage.1.ex
+│   │   ├── manpage.sgml.ex
+│   │   ├── manpage.xml.ex
+│   │   ├── menu.ex
+│   │   ├── postinst.ex
+│   │   ├── postrm.ex
+│   │   ├── preinst.ex
+│   │   ├── prerm.ex
+│   │   ├── README
+│   │   ├── README.Debian
+│   │   ├── README.source
+│   │   ├── rules
+│   │   └── source
+│   │       └── format
+│   ├── Makefile
+│   └── src
+│       └── covid-terminator.c
+├── hello-dhmake_0.1_amd64.build
+├── hello-dhmake_0.1_amd64.buildinfo
+├── hello-dhmake_0.1_amd64.changes
+├── hello-dhmake_0.1_amd64.deb
+├── hello-dhmake-dbgsym_0.1_amd64.deb
+└── README
+
+4 directories, 28 files
+
+

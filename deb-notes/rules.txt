@@ -1,0 +1,213 @@
+
+https://wiki.debian.org/Teams/Dpkg/DebianRules
+https://www.debian.org/doc/debian-policy/ch-source.html#s-debianrules
+https://man7.org/linux/man-pages/man1/dh.1.html
+https://man7.org/linux/man-pages/man7/debhelper.7.html
+
+# Environment variables setup by dpkg-buildpackage
+$ dpkg-architecture -l
+DEB_BUILD_ARCH=amd64
+DEB_BUILD_ARCH_ABI=base
+DEB_BUILD_ARCH_BITS=64
+DEB_BUILD_ARCH_CPU=amd64
+DEB_BUILD_ARCH_ENDIAN=little
+DEB_BUILD_ARCH_LIBC=gnu
+DEB_BUILD_ARCH_OS=linux
+DEB_BUILD_GNU_CPU=x86_64
+DEB_BUILD_GNU_SYSTEM=linux-gnu
+DEB_BUILD_GNU_TYPE=x86_64-linux-gnu
+DEB_BUILD_MULTIARCH=x86_64-linux-gnu
+DEB_HOST_ARCH=amd64
+DEB_HOST_ARCH_ABI=base
+DEB_HOST_ARCH_BITS=64
+DEB_HOST_ARCH_CPU=amd64
+DEB_HOST_ARCH_ENDIAN=little
+DEB_HOST_ARCH_LIBC=gnu
+DEB_HOST_ARCH_OS=linux
+DEB_HOST_GNU_CPU=x86_64
+DEB_HOST_GNU_SYSTEM=linux-gnu
+DEB_HOST_GNU_TYPE=x86_64-linux-gnu
+DEB_HOST_MULTIARCH=x86_64-linux-gnu
+DEB_TARGET_ARCH=amd64
+DEB_TARGET_ARCH_ABI=base
+DEB_TARGET_ARCH_BITS=64
+DEB_TARGET_ARCH_CPU=amd64
+DEB_TARGET_ARCH_ENDIAN=little
+DEB_TARGET_ARCH_LIBC=gnu
+DEB_TARGET_ARCH_OS=linux
+DEB_TARGET_GNU_CPU=x86_64
+DEB_TARGET_GNU_SYSTEM=linux-gnu
+DEB_TARGET_GNU_TYPE=x86_64-linux-gnu
+DEB_TARGET_MULTIARCH=x86_64-linux-gnu
+
+# https://wiki.ubuntu.com/DistCompilerFlags
+A set of macros which are passed from dpkg-buildpackage to the debian build system (debian/rules).
+
+    CFLAGS: Optimization options passed to the debian build system and can/should be overriden by the package build if needed
+            default value: -g -O2, or -g -O0 if noopt is specified; if overriden, the last opt level "wins"
+
+    CFLAGS_APPEND: Optimization options appended to the compiler flags
+                   must not be overwritten by the package (mostly used to for test builds). Default value: empty
+
+    CPPFLAGS: Preprocessor flags passed to the debian build system and can/should be overriden by the package build if needed (default: empty)
+              This macro is seldom used (most build systems just use CFLAGS instead of CPPFLAGS)
+
+    CPPFLAGS_APPEND: Preprocessor flags appended to the preprocessor flags
+                     must not be overwritten by the package (mostly used to for test builds). Default value: empty.
+
+    CXXFLAGS: Same as CFLAGS for C++ sources.
+
+    CXXFLAGS_APPEND: Same as CFLAGS_APPEND for C++ sources.
+
+    LDFLAGS: Options passed to the compiler when linking executables or shared objects
+             if the linker is called directly, then -Wl and , have to be stripped from these options. Default: -Wl,-Bsymbolic-functions
+
+dpkg-buildpackage sets these flags to the default values unless the flags are already defined in the environment.
+
+# Since the debian/rules caller sets up the standard build environment, avoid calling debian/rules directly
+# Instead of calling: debian/rules target
+#               call: dpkg-buildpackage --target target
+# target: binary binary-arch binary-indep build build-arch build-indep clean install install-arch install-indep
+
+# debian/rules must start with the line #!/usr/bin/make -f
+# The following targets must be implemented by debian/rules: clean, binary, binary-arch, binary-indep, build, build-arch and build-indep
+#     They are the targets called by dpkg-buildpackage
+#     All required targets must be non-interactive
+# The package build should be as verbose as reasonably possible, except where the terse tag is included in DEB_BUILD_OPTIONS
+#     For example, the build target should pass --disable-silent-rules to any configure scripts
+# Required targets must not attempt to write outside of the unpacked source package tree. Exceptions:
+#     the binary targets may write the binary packages to the parent directory of the unpacked source package tree
+#     required targets may write to /tmp, /var/tmp and to the directory specified by the TMPDIR environment variable,
+#         but must not depend on the contents of any of these
+# Target:
+#     clean: undo any effects that the build and binary targets may have had,
+#            except that it should leave alone any output files created in the parent directory by a run of a binary target
+
+# List of supported make variables:
+  DEB_*_ARCH (the Debian architecture)
+  DEB_*_ARCH_CPU (the Debian CPU name)
+  DEB_*_ARCH_BITS (the Debian CPU pointer size in bits)
+  DEB_*_ARCH_ENDIAN (the Debian CPU endianness)
+  DEB_*_ARCH_OS (the Debian System name)
+  DEB_*_GNU_TYPE (the GNU style architecture specification string)
+  DEB_*_GNU_CPU (the CPU part of DEB_*_GNU_TYPE)
+  DEB_*_GNU_SYSTEM (the System part of DEB_*_GNU_TYPE)
+  where * is either BUILD for specification of the build architecture,
+                    HOST for specification of the host architecture or
+                    TARGET for specification of the target architecture.
+
+# DEB_BUILD_OPTIONS: nocheck, nodoc, noopt, nostrip, parallel=n, terse
+
+# Rules-Requires-Root: allows the debian/rules target to run particular subcommands under (fake)root
+#                      gain root command is passed to the build script via the DEB_GAIN_ROOT_CMD environment variable
+#                      e.g., export DEB_GAIN_ROOT_CMD='fakeroot --'
+
+# dh runs a sequence of debhelper commands.
+# The supported sequences correspond to the targets of a debian/rules file:
+#     build-arch, build-indep, build, clean, install-indep, install-arch, install, binary-arch, binary-indep, and binary
+# Injecting commands before or after a step: requires debhelper 12.8 or later plus the package must use compatibility mode 10 or later
+#     execute_before_dh_command: inject commands before dh_command
+#     execute_after_dh_command: inject commands after dh_command
+# Overriding a command: override_dh_command
+# Architecture dependent/independent override and hook targets: available since debhelper 8.9.7 (for override targets) and 12.8 (for hook targets)
+#     override_dh_command-arch and execute_afterdh_command-indep
+# Completely empty targets:
+            #Skip dh_bar - the good and optimized way
+            # Some rationale for skipping dh_bar goes here
+            override_dh_bar:
+
+            # Skip dh_foo - the slow way
+            override_dh_foo:
+               # Some rationale for skipping dh_foo goes here
+               # (these comments causes a dummy target to be run)
+# Verifying targets are picked up by dh:
+$ dh binary --no-act | grep dh_install | head -n5
+                dh_installdirs
+                dh_install
+                debian/rules execute_after_dh_install
+                dh_installdocs
+                dh_installchangelogs
+
+       The debian/rules execute_after_dh_install in the output, which
+       signals that dh registered a execute_after_dh_install target and
+       would run it directly after dh_install
+
+# List all available addons
+$ dh binary --list
+autoreconf
+autotools-dev
+bash-completion
+build-stamp
+dkms
+dwz
+installinitramfs
+perl-openssl
+python-support
+python2
+quilt
+systemd
+
+# dh_* [-v] [-a] [-i] [--no-act] [-ppackage] [-Npackage] [-Ptmpdir]
+       dh_auto_build: automatically builds a package
+       dh_auto_clean: automatically cleans up after a build
+       dh_auto_configure: automatically configure a package prior to building
+       dh_auto_install: automatically runs make install or similar
+       dh_auto_test: automatically runs a package's test suites
+       dh_bugfiles:  install bug reporting customization files into package build directories
+       dh_builddeb: build Debian binary packages
+       dh_clean: clean up package build directories
+       dh_compress: compress files and fix symlinks in package build directories
+       dh_dwz: optimize DWARF debug information in ELF binaries via dwz
+       dh_fixperms: fix permissions of files in package build directories
+       dh_gencontrol: generate and install control file
+       dh_icons: Update caches of Freedesktop icons
+       dh_install: install files into package build directories
+       dh_installalternatives: install declarative alternative rules
+       dh_installcatalogs: install and register SGML Catalogs
+       dh_installchangelogs: install changelogs into package build directories
+       dh_installcron: install cron scripts into etc/cron.*
+       dh_installdeb: install files into the DEBIAN directory
+       dh_installdebconf: install files used by debconf in package build directories
+       dh_installdirs: create subdirectories in package build directories
+       dh_installdocs: install documentation into package build directories
+       dh_installemacsen: register an Emacs add on package
+       dh_installexamples: install example files into package build directories
+       dh_installgsettings: install GSettings overrides and set dependencies
+       dh_installifupdown: install if-up and if-down hooks
+       dh_installinfo: install info files
+       dh_installinit: install service init files into package build directories
+       dh_installinitramfs: install initramfs hooks and setup maintscripts
+       dh_installlogcheck: install logcheck rulefiles into etc/logcheck/
+       dh_installlogrotate: install logrotate config files
+       dh_installman: install man pages into package build directories
+       dh_installmenu: install Debian menu files into package build directories
+       dh_installmime: install mime files into package build directories
+       dh_installmodules: register kernel modules
+       dh_installpam: install pam support files
+       dh_installppp: install ppp ip-up and ip-down files
+       dh_installsystemd: install systemd unit files
+       dh_installsystemduser: install systemd unit files
+       dh_installsysusers: install and integrates systemd sysusers files
+       dh_installtmpfiles: install tmpfiles.d configuration files
+       dh_installudev: install udev rules files
+       dh_installwm: register a window manager
+       dh_installxfonts: register X fonts
+       dh_link: create symlinks in package build directories
+       dh_lintian: install lintian override files into package build directories
+       dh_listpackages: list binary packages debhelper will act on
+       dh_makeshlibs: automatically create shlibs file and call dpkg-gensymbols
+       dh_md5sums: generate DEBIAN/md5sums file
+       dh_missing: check for missing files
+       dh_movefiles: move files out of debian/tmp into subpackages
+       dh_perl: calculates Perl dependencies and cleans up after MakeMaker
+       dh_prep: perform cleanups in preparation for building a binary package
+       dh_shlibdeps: calculate shared library dependencies
+       dh_strip: strip executables, shared libraries, and some static libraries
+       dh_systemd_enable: enable/disable systemd unit files
+       dh_systemd_start: start/stop/restart systemd unit files
+       dh_testdir: test directory before building Debian package
+       dh_testroot: ensure that a package is built with necessary level of root permissions
+       dh_ucf: register configuration files with ucf
+       dh_update_autotools_config: Update autotools config files
+       dh_usrlocal: migrate usr/local directories to maintainer scripts
+

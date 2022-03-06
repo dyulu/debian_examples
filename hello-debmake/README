@@ -1,0 +1,290 @@
+# .bashrc
+DEBEMAIL='covid.terminator@covid-terminator.org'
+DEBFULLNAME='Covid Terminator'
+export DEBEMAIL DEBFULLNAME
+
+$ ~# tree hello-debmake/
+hello-debmake/
+├── hello-demake-0.1
+│   ├── Makefile
+│   └── src
+│       └── covid-terminator.c
+└── README
+
+$ ~/hello-debmake/hello-demake-0.1# debmake -T -n --package hello-demake -u 0.1 --email "covid-terminator@covid-terminator.com" --fullname "Covid Terminator" --invoke "debuild"
+I: set parameters
+I: sanity check of parameters
+W: -p "hello-demake" != auto set value ""
+W: -u "0.1" != auto set value ""
+I: pkg="hello-demake", ver="0.1", rev="1"
+I: *** start packaging in "hello-demake-0.1". ***
+I: parse binary package settings: 
+I: binary package=hello-demake Type=bin / Arch=any M-A=foreign
+I: analyze the source tree
+I: build_type = make
+I: scan source for copyright+license text and file extensions
+I: 100 %, ext = c
+I: check_all_licenses
+I: ..
+I: check_all_licenses completed for 2 files.
+I: bunch_all_licenses
+I: format_all_licenses
+I: make debian/* template files
+I: single binary package
+I: debmake -x "1" ...
+I: creating => debian/control
+I: creating => debian/copyright
+I: substituting => /usr/share/debmake/extra0/changelog
+I: creating => debian/changelog
+I: substituting => /usr/share/debmake/extra0/rules
+I: creating => debian/rules
+I: substituting => /usr/share/debmake/extra1/compat
+I: creating => debian/compat
+I: substituting => /usr/share/debmake/extra1/README.Debian
+I: creating => debian/README.Debian
+I: substituting => /usr/share/debmake/extra1/watch
+I: creating => debian/watch
+I: substituting => /usr/share/debmake/extra1source/format
+I: creating => debian/source/format
+I: substituting => /usr/share/debmake/extra1source/local-options
+I: creating => debian/source/local-options
+I: run "debmake -x2" to get more template files
+I: $ wrap-and-sort
+I: debuild
+ dpkg-buildpackage -us -uc -ui
+dpkg-buildpackage: info: source package hello-demake
+dpkg-buildpackage: info: source version 0.1
+dpkg-buildpackage: info: source distribution UNRELEASED
+dpkg-buildpackage: info: source changed by Covid Terminator <bogus@localhost>
+ dpkg-source --before-build .
+dpkg-buildpackage: info: host architecture amd64
+ debian/rules clean
+dh clean  
+   dh_auto_clean
+	make -j2 clean
+make[1]: Entering directory '/root/hello-debmake/hello-demake-0.1'
+rm -f src/covid-terminator
+make[1]: Leaving directory '/root/hello-debmake/hello-demake-0.1'
+   dh_clean
+ dpkg-source -b .
+dpkg-source: info: using source format '3.0 (native)'
+dpkg-source: info: building hello-demake in hello-demake_0.1.tar.xz
+dpkg-source: info: building hello-demake in hello-demake_0.1.dsc
+ debian/rules build
+dh build  
+   dh_update_autotools_config
+   dh_autoreconf
+   dh_auto_configure
+   dh_auto_build
+	make -j2 "INSTALL=install --strip-program=true"
+make[1]: Entering directory '/root/hello-debmake/hello-demake-0.1'
+# CFLAGS=
+gcc  src/covid-terminator.c -o src/covid-terminator 
+make[1]: Leaving directory '/root/hello-debmake/hello-demake-0.1'
+   dh_auto_test
+   create-stamp debian/debhelper-build-stamp
+ debian/rules binary
+dh binary  
+   dh_testroot
+   dh_prep
+   dh_auto_install
+	make -j2 install DESTDIR=/root/hello-debmake/hello-demake-0.1/debian/hello-demake AM_UPDATE_INFO_DIR=no "INSTALL=install --strip-program=true"
+make[1]: Entering directory '/root/hello-debmake/hello-demake-0.1'
+install -d /root/hello-debmake/hello-demake-0.1/debian/hello-demake/bin/
+install src/covid-terminator /root/hello-debmake/hello-demake-0.1/debian/hello-demake/bin/
+make[1]: Leaving directory '/root/hello-debmake/hello-demake-0.1'
+   dh_installdocs
+   dh_installchangelogs
+   dh_perl
+   dh_link
+   dh_strip_nondeterminism
+   dh_compress
+   dh_fixperms
+   dh_missing
+   dh_strip
+   dh_makeshlibs
+   dh_shlibdeps
+   dh_installdeb
+   dh_gencontrol
+   dh_md5sums
+   dh_builddeb
+dpkg-deb: building package 'hello-demake-dbgsym' in '../hello-demake-dbgsym_0.1_amd64.deb'.
+dpkg-deb: building package 'hello-demake' in '../hello-demake_0.1_amd64.deb'.
+ dpkg-genbuildinfo
+Can't stat /usr/local/bin: No such file or directory
+ at /usr/share/perl5/Dpkg/Vendor/Debian.pm line 469.
+ dpkg-genchanges  >../hello-demake_0.1_amd64.changes
+dpkg-genchanges: info: including full source code in upload
+ dpkg-source --after-build .
+dpkg-buildpackage: info: full upload; Debian-native package (full source is included)
+Now running lintian hello-demake_0.1_amd64.changes ...
+warning: the authors of lintian do not recommend running it with root privileges!
+E: hello-demake changes: changed-by-address-malformed Covid Terminator <bogus@localhost>
+E: hello-demake changes: changed-by-address-is-on-localhost Covid Terminator <bogus@localhost>
+E: hello-demake source: maintainer-address-malformed Covid Terminator <bogus@localhost>
+E: hello-demake source: maintainer-address-is-on-localhost Covid Terminator <bogus@localhost>
+W: hello-demake source: file-without-copyright-information debian/README.Debian
+W: hello-demake source: file-without-copyright-information debian/changelog
+W: hello-demake source: file-without-copyright-information debian/compat
+W: hello-demake source: file-without-copyright-information debian/control
+W: hello-demake source: file-without-copyright-information debian/copyright
+W: hello-demake source: file-without-copyright-information debian/rules
+W: hello-demake source: file-without-copyright-information debian/source/format
+W: hello-demake source: file-without-copyright-information debian/watch
+W: hello-demake source: missing-license-paragraph-in-dep5-copyright __no_copyright_nor_license__ (paragraph at line 22)
+W: hello-demake source: debian-watch-file-in-native-package
+W: hello-demake: wrong-bug-number-in-closes l3:#nnnn
+E: hello-demake: debian-changelog-file-contains-invalid-email-address bogus@localhost
+E: hello-demake: changelog-is-dh_make-template
+W: hello-demake: copyright-has-url-from-dh_make-boilerplate
+W: hello-demake: copyright-without-copyright-notice
+W: hello-demake: readme-debian-contains-debmake-template
+W: hello-demake: extended-description-line-too-long
+E: hello-demake: maintainer-address-malformed Covid Terminator <bogus@localhost>
+E: hello-demake: maintainer-address-is-on-localhost Covid Terminator <bogus@localhost>
+W: hello-demake: unknown-section local
+W: hello-demake: binary-without-manpage bin/covid-terminator
+W: hello-demake-dbgsym: debug-file-with-no-debug-symbols usr/lib/debug/.build-id/a6/16a6fa3df08b6d54b25b1c82a7ed8c21a92e55.debug
+E: hello-demake-dbgsym: maintainer-address-malformed Covid Terminator <bogus@localhost>
+E: hello-demake-dbgsym: maintainer-address-is-on-localhost Covid Terminator <bogus@localhost>
+Finished running lintian.
+I: upon return to the shell, current directory becomes /root/hello-debmake/hello-demake-0.1
+I: please execute "cd .." and inspect the build results.
+
+$ ~# tree hello-debmake/
+hello-debmake/
+├── hello-demake-0.1
+│   ├── debian
+│   │   ├── changelog
+│   │   ├── compat
+│   │   ├── control
+│   │   ├── copyright
+│   │   ├── debhelper-build-stamp
+│   │   ├── files
+│   │   ├── hello-demake
+│   │   │   ├── bin
+│   │   │   │   └── covid-terminator
+│   │   │   ├── DEBIAN
+│   │   │   │   ├── control
+│   │   │   │   └── md5sums
+│   │   │   └── usr
+│   │   │       └── share
+│   │   │           └── doc
+│   │   │               └── hello-demake
+│   │   │                   ├── changelog.gz
+│   │   │                   ├── copyright
+│   │   │                   └── README.Debian
+│   │   ├── hello-demake.substvars
+│   │   ├── README.Debian
+│   │   ├── rules
+│   │   ├── source
+│   │   │   ├── format
+│   │   │   └── local-options
+│   │   └── watch
+│   ├── Makefile
+│   └── src
+│       ├── covid-terminator
+│       └── covid-terminator.c
+├── hello-demake_0.1_amd64.build
+├── hello-demake_0.1_amd64.buildinfo
+├── hello-demake_0.1_amd64.changes
+├── hello-demake_0.1_amd64.deb
+├── hello-demake_0.1.dsc
+├── hello-demake_0.1.tar.xz
+├── hello-demake-dbgsym_0.1_amd64.deb
+└── README
+
+11 directories, 29 files
+
+$ ~/hello-debmake/hello-demake-0.1# dpkg -i ../hello-demake_0.1_amd64.deb 
+Selecting previously unselected package hello-demake.
+(Reading database ... 64008 files and directories currently installed.)
+Preparing to unpack ../hello-demake_0.1_amd64.deb ...
+Unpacking hello-demake (0.1) ...
+Setting up hello-demake (0.1) ...
+
+$ ~/hello-debmake/hello-demake-0.1# which covid-terminator 
+/usr/bin/covid-terminator
+
+$ ~/hello-debmake/hello-demake-0.1# dpkg -r hello-demake
+(Reading database ... 64013 files and directories currently installed.)
+Removing hello-demake (0.1) ...
+
+$ ~/hello-debmake/hello-demake-0.1# which covid-terminator 
+$ ~/hello-debmake/hello-demake-0.1#
+
+$ ~/hello-debmake/hello-demake-0.1# debuild -rfakeroot -Tclean
+ dpkg-buildpackage -rfakeroot -us -uc -ui -Tclean
+dpkg-buildpackage: warning: using a gain-root-command while being root
+dpkg-buildpackage: info: source package hello-demake
+dpkg-buildpackage: info: source version 0.1
+dpkg-buildpackage: info: source distribution UNRELEASED
+dpkg-buildpackage: info: source changed by Covid Terminator <bogus@localhost>
+ fakeroot debian/rules clean
+dh clean  
+   dh_auto_clean
+	make -j2 clean
+make[1]: Entering directory '/root/hello-debmake/hello-demake-0.1'
+rm -f src/covid-terminator
+make[1]: Leaving directory '/root/hello-debmake/hello-demake-0.1'
+   dh_clean
+Now running lintian hello-demake_0.1_amd64.changes ...
+warning: the authors of lintian do not recommend running it with root privileges!
+E: hello-demake changes: changed-by-address-malformed Covid Terminator <bogus@localhost>
+E: hello-demake changes: changed-by-address-is-on-localhost Covid Terminator <bogus@localhost>
+E: hello-demake source: maintainer-address-malformed Covid Terminator <bogus@localhost>
+E: hello-demake source: maintainer-address-is-on-localhost Covid Terminator <bogus@localhost>
+W: hello-demake source: file-without-copyright-information debian/README.Debian
+W: hello-demake source: file-without-copyright-information debian/changelog
+W: hello-demake source: file-without-copyright-information debian/compat
+W: hello-demake source: file-without-copyright-information debian/control
+W: hello-demake source: file-without-copyright-information debian/copyright
+W: hello-demake source: file-without-copyright-information debian/rules
+W: hello-demake source: file-without-copyright-information debian/source/format
+W: hello-demake source: file-without-copyright-information debian/watch
+W: hello-demake source: missing-license-paragraph-in-dep5-copyright __no_copyright_nor_license__ (paragraph at line 22)
+W: hello-demake source: debian-watch-file-in-native-package
+W: hello-demake: wrong-bug-number-in-closes l3:#nnnn
+E: hello-demake: debian-changelog-file-contains-invalid-email-address bogus@localhost
+E: hello-demake: changelog-is-dh_make-template
+W: hello-demake: copyright-has-url-from-dh_make-boilerplate
+W: hello-demake: copyright-without-copyright-notice
+W: hello-demake: readme-debian-contains-debmake-template
+W: hello-demake: extended-description-line-too-long
+E: hello-demake: maintainer-address-malformed Covid Terminator <bogus@localhost>
+E: hello-demake: maintainer-address-is-on-localhost Covid Terminator <bogus@localhost>
+W: hello-demake: unknown-section local
+W: hello-demake: binary-without-manpage bin/covid-terminator
+W: hello-demake-dbgsym: debug-file-with-no-debug-symbols usr/lib/debug/.build-id/a6/16a6fa3df08b6d54b25b1c82a7ed8c21a92e55.debug
+E: hello-demake-dbgsym: maintainer-address-malformed Covid Terminator <bogus@localhost>
+E: hello-demake-dbgsym: maintainer-address-is-on-localhost Covid Terminator <bogus@localhost>
+Finished running lintian.
+
+$ ~# tree hello-debmake/
+hello-debmake/
+├── hello-demake-0.1
+│   ├── debian
+│   │   ├── changelog
+│   │   ├── compat
+│   │   ├── control
+│   │   ├── copyright
+│   │   ├── README.Debian
+│   │   ├── rules
+│   │   ├── source
+│   │   │   ├── format
+│   │   │   └── local-options
+│   │   └── watch
+│   ├── Makefile
+│   └── src
+│       └── covid-terminator.c
+├── hello-demake_0.1_amd64.build
+├── hello-demake_0.1_amd64.buildinfo
+├── hello-demake_0.1_amd64.changes
+├── hello-demake_0.1_amd64.deb
+├── hello-demake_0.1.dsc
+├── hello-demake_0.1.tar.xz
+├── hello-demake-dbgsym_0.1_amd64.deb
+└── README
+
+4 directories, 19 files
+

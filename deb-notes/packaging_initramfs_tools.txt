@@ -1,0 +1,736 @@
+
+Debian Policy Manual:         must follow rules;           https://www.debian.org/doc/devel-manuals#policy
+Debian Developer’s Reference: best practice document;      https://www.debian.org/doc/devel-manuals#devref
+Guide for Debian Maintainers: tutorial reference document; https://www.debian.org/doc/devel-manuals#debmake-doc
+
+Debian Maintainer Tools: https://www.debian.org/doc/manuals/developers-reference/tools.html
+
+https://wiki.debian.org/Packaging/Intro?action=show&redirect=IntroDebianPackaging
+https://www.debian.org/doc/manuals/packaging-tutorial/packaging-tutorial.en.pdf
+https://trends.debian.net/#build-systems
+
+==== DEBEMAIL and DEBFULLNAME
+
+Various Debian maintenance tools recognize the shell environment variables $DEBEMAIL and $DEBFULLNAME
+
+Add the following to ~/.bashrc file: 
+DEBEMAIL="your.email.address@example.org"
+DEBFULLNAME="Firstname Lastname"
+export DEBEMAIL DEBFULLNAME
+
+==== /etc/apt/sources.list
+
+https://wiki.debian.org/SourcesList
+
+Format:
+# Binary packages, .deb
+deb http://site.example.com/debian distribution component1 component2 component3
+# Source packages, original sources + control file (.dsc) and diff.gz
+deb-src http://site.example.com/debian distribution component1 component2 component3
+# Distribution:  stretch, buster, bullseye, bookworm, sid OR oldoldstable, oldstable, stable, testing, unstable
+# Avoid using stable as that results in nasty surprises and broken systems when the next release is made
+# Component: main -- DFSG-compliant packages, which do not rely on software outside this area to operate
+#            contrib -- DFSG-compliant software, but have dependencies not in main (possibly packaged for Debian in non-free)
+#            non-free -- software that does not comply with the DFSG
+
+Example of /etc/apt/sources.list:
+
+# See http://www.debian.org/releases/stable/i386/release-notes/ch-upgrading.html
+# for how to upgrade to newer versions of the distribution.
+deb http://deb.debian.org/debian buster main
+deb-src http://deb.debian.org/debian buster main
+
+## Major bug fix updates produced after the final release of the distribution.
+deb http://security.debian.org/ buster/updates main
+deb-src http://security.debian.org/ buster/updates main
+deb http://deb.debian.org/debian buster-updates main
+deb-src http://deb.debian.org/debian buster-updates main
+
+## Software from this repository may not have been tested as
+## extensively as that contained in the main release, although it includes
+## newer versions of some applications which may provide useful features.
+deb http://deb.debian.org/debian buster-backports main
+deb-src http://deb.debian.org/debian buster-backports main
+
+==== Required packages for packaging
+
+apt update
+apt install build-essential devscripts debhelper
+apt install dpkg-dev
+
+==== Packaging files
+
+debian/changelog: has a standard format, use dch tool to help create it
+                  https://man7.org/linux/man-pages/man5/deb-changelog.5.html
+debian/compat: compatibility level for the debhelper tool
+debian/control: first paragraph describes the source package; paragraphs after the first describe the binary packages built from this source
+                https://man7.org/linux/man-pages/man5/deb-src-control.5.html
+                https://man7.org/linux/man-pages/man5/deb-control.5.html
+debian/copyright: 
+debian/rules: indented by one TAB instead of spaces as thios file is makefile
+              https://www.debian.org/doc/debian-policy/ch-source#s-debianrules
+debian/source/format: contain the version number for the format of the source package, which is "3.0 (quilt)"
+debian/patches/vendor.series:
+debian/patches/series: all patches that have to be applied (in the given order) on top of the upstream source package
+
+debian/substvars: contains variable substitutions to be used by dpkg-gencontrol to generate binary package control files (DEBIAN/control)
+                  dpkg-gencontrol performs variable substitutions on its output just before writing DEBIAN/control
+                  variables can also be set directly from debian/rules using the -V option to the source packaging commands
+debian/watch: config file for uscan utility which defines how to automatically scan ftp or http sites for newly available updates of the package
+debian/files: used while building packages to record which files are being generated. dpkg-genchanges uses it when it generates a .changes file
+
+
+==== Version of the source format
+
+https://man7.org/linux/man-pages/man1/dpkg-source.1.html
+
+1.0 or 3.0 (native): package_version.tar.gz
+1.0 (non-native):
+    pkg_ver.orig.tar.gz: upstream source
+    pkg_debver.diff.gz: patch to add Debian-specific changes
+3.0 (quilt):
+    pkg_ver.orig.tar.gz: upstream source
+    pkg_debver.debian.tar.gz: tarball with the Debian changes
+
+==== Retrieving an existing source package
+
+From the Debian archive:
+    apt-get source package
+    apt-get source package=version
+    apt-get source package/release
+From the Internet:
+    dget url-to.dsc
+    dget https://snapshot.debian.org/archive/debian-archive/20190328T105444Z/debian/dists/bo/main/source/web/wget_1.4.4-6.dsc
+         would get wget_1.4.4-6.diff.gz  wget_1.4.4-6.dsc  wget_1.4.4.orig.tar.gz
+From the (declared) version control system:
+    debcheckout package
+Once downloaded, extract with
+    dpkg-source -x file.dsc
+
+==== Building packages
+
+apt-get build-dep my_package
+    Installs the build-dependencies (for a package already in Debian)
+    Or mk-build-deps -ir (for a package not uploaded yet)
+debuild: build, test with lintian, sign with GPG
+    Also possible to call dpkg-buildpackage directly
+    Usually with dpkg-buildpackage -us -uc
+It is better to build packages in a clean & minimal environment
+    pbuilder – helper to build packages in a chroot
+        Good documentation: https://wiki.ubuntu.com/PbuilderHowto
+        (optimization: cowbuilder ccache distcc)
+    schroot and sbuild: used on the Debian build daemons
+        (not as simple as pbuilder, but allows LVM snapshots
+        see: https://help.ubuntu.com/community/SbuildLVMHowto )
+Generates .deb files and a .changes file
+    .changes: describes what was built; used to upload the package
+
+==== Installing and testing packages
+
+Install the package locally: debi (will use .changes to know what to install)
+List the content of the package: debc ../my_package<TAB>.changes
+Compare the package with a previous version:
+    debdiff ../my_package_1_*.changes ../my_package_2_*.changes
+    or to compare the sources:
+    debdiff ../my_package_1_*.dsc ../my_package_2_*.dsc
+Check the package with lintian (static analyzer):
+    lintian ../my_package<TAB>.changes
+    lintian -i: gives more information about the errors
+    lintian -EviIL +pedantic: shows more problems
+Upload the package to Debian (dput) (needs configuration)
+Manage a private Debian archive with reprepro or aptly
+    https://wiki.debian.org/HowToSetupADebianRepository
+
+==== Example package: initramfs-tools
+
+apt source initramfs-tools               # download the src
+apt build-dep initramfs-tools            # install build dependencies
+dpkg-buildpackage -rfakeroot -b -uc -us  # -rfakeroot: gain root rights
+                                         # -b: binary-only, no source files
+                                         # -uc: unsigned .buildinfo and .changes file
+                                         # -us: unsigned source package
+                                         # debuild -rfakeroot -b -us -uc
+dpkg -i initramfs-tools_0.133+deb10u1_all.deb  # install the package
+apt install -f                           # fix the dependencies
+
+# Logged in as root; cd to /root/work/
+# Download the package
+$ apt source initramfs-tools
+Reading package lists... Done
+NOTICE: 'initramfs-tools' packaging is maintained in the 'Git' version control system at:
+https://salsa.debian.org/kernel-team/initramfs-tools.git
+Please use:
+git clone https://salsa.debian.org/kernel-team/initramfs-tools.git
+to retrieve the latest (possibly unreleased) updates to the package.
+Need to get 92.5 kB of source archives.
+Get:1 http://deb.debian.org/debian buster/main initramfs-tools 0.133+deb10u1 (dsc) [1,853 B]
+Get:2 http://deb.debian.org/debian buster/main initramfs-tools 0.133+deb10u1 (tar) [90.6 kB]
+Fetched 92.5 kB in 1s (121 kB/s)      
+dpkg-source: info: extracting initramfs-tools in initramfs-tools-0.133+deb10u1
+dpkg-source: info: unpacking initramfs-tools_0.133+deb10u1.tar.xz
+W: Download is performed unsandboxed as root as file 'initramfs-tools_0.133+deb10u1.dsc' couldn't be accessed by user '_apt'. - pkgAcquire::Run (13: Permission denied)
+
+$ tree
+.
+├── initramfs-tools-0.133+deb10u1
+│   ├── bash_completion.d
+│   │   └── update-initramfs
+│   ├── conf
+│   │   ├── initramfs.conf
+│   │   ├── modules
+│   │   └── update-initramfs.conf
+│   ├── debian
+│   │   ├── changelog
+│   │   ├── compat
+│   │   ├── control
+│   │   ├── copyright
+│   │   ├── initramfs-tools.bash-completion
+│   │   ├── initramfs-tools-core.dirs
+│   │   ├── initramfs-tools-core.examples
+│   │   ├── initramfs-tools-core.install
+│   │   ├── initramfs-tools-core.lintian-overrides
+│   │   ├── initramfs-tools-core.manpages
+│   │   ├── initramfs-tools-core.postinst
+│   │   ├── initramfs-tools-core.postrm
+│   │   ├── initramfs-tools.dirs
+│   │   ├── initramfs-tools.install
+│   │   ├── initramfs-tools.lintian-overrides
+│   │   ├── initramfs-tools.maintscript
+│   │   ├── initramfs-tools.manpages
+│   │   ├── initramfs-tools.postinst
+│   │   ├── initramfs-tools.postrm
+│   │   ├── initramfs-tools.preinst
+│   │   ├── initramfs-tools.triggers
+│   │   ├── NEWS
+│   │   ├── README
+│   │   ├── rules
+│   │   ├── script
+│   │   ├── source
+│   │   │   └── format
+│   │   ├── tests
+│   │   │   └── control
+│   │   └── TODO
+│   ├── docs
+│   │   ├── example_hook
+│   │   ├── example_script
+│   │   ├── framebuffer
+│   │   └── maintainer-notes.md
+│   ├── hook-functions
+│   ├── hooks
+│   │   ├── fsck
+│   │   ├── keymap
+│   │   ├── resume
+│   │   └── thermal
+│   ├── init
+│   ├── initramfs.conf.5
+│   ├── initramfs-tools.7
+│   ├── kernel
+│   │   ├── postinst.d
+│   │   │   └── initramfs-tools
+│   │   └── postrm.d
+│   │       └── initramfs-tools
+│   ├── lsinitramfs
+│   ├── lsinitramfs.8
+│   ├── mkinitramfs
+│   ├── mkinitramfs.8
+│   ├── scripts
+│   │   ├── functions
+│   │   ├── init-top
+│   │   │   ├── all_generic_ide
+│   │   │   ├── blacklist
+│   │   │   └── keymap
+│   │   ├── local
+│   │   ├── local-premount
+│   │   │   └── resume
+│   │   └── nfs
+│   ├── unmkinitramfs
+│   ├── unmkinitramfs.8
+│   ├── update-initramfs
+│   ├── update-initramfs.8
+│   └── update-initramfs.conf.5
+├── initramfs-tools_0.133+deb10u1.dsc
+└── initramfs-tools_0.133+deb10u1.tar.xz
+
+14 directories, 64 files
+
+# Get the dependencies
+$ apt build-dep initramfs-tools
+Reading package lists... Done
+Reading package lists... Done
+Building dependency tree       
+Reading state information... Done
+The following NEW packages will be installed:
+  shellcheck
+0 upgraded, 1 newly installed, 0 to remove and 137 not upgraded.
+Need to get 2,202 kB of archives.
+After this operation, 17.7 MB of additional disk space will be used.
+Do you want to continue? [Y/n] Y
+Get:1 http://deb.debian.org/debian buster/main amd64 shellcheck amd64 0.5.0-3 [2,202 kB]
+Fetched 2,202 kB in 1s (2,822 kB/s)
+Selecting previously unselected package shellcheck.
+(Reading database ... 63252 files and directories currently installed.)
+Preparing to unpack .../shellcheck_0.5.0-3_amd64.deb ...
+Unpacking shellcheck (0.5.0-3) ...
+Setting up shellcheck (0.5.0-3) ...
+Processing triggers for man-db (2.8.5-2) ...
+
+# Build the package
+$ dpkg-buildpackage -rfakeroot -b -uc -us
+dpkg-buildpackage: info: source package initramfs-tools
+dpkg-buildpackage: info: source version 0.133+deb10u1
+dpkg-buildpackage: info: source distribution buster
+dpkg-buildpackage: info: source changed by Ben Hutchings <ben@decadent.org.uk>
+dpkg-buildpackage: info: host architecture amd64
+ dpkg-source --before-build .
+ debian/rules clean
+dh clean --with bash-completion
+   dh_clean
+ debian/rules binary
+dh binary --with bash-completion
+   dh_update_autotools_config
+   debian/rules override_dh_auto_test
+make[1]: Entering directory '/root/work/initramfs-tools-0.133+deb10u1'
+shellcheck -e SC1090,SC1091 -s dash hook-functions $(find hooks scripts -type f) $({ find . -maxdepth 1 -type f -executable; find debian -maxdepth 1 -type f; find docs kernel -type f; } | xargs grep -l '^#!/bin/sh')
+make[1]: Leaving directory '/root/work/initramfs-tools-0.133+deb10u1'
+   dh_testroot
+   dh_prep
+   dh_installdirs
+   debian/rules override_dh_install
+make[1]: Entering directory '/root/work/initramfs-tools-0.133+deb10u1'
+sed -e 's,@BUSYBOX_PACKAGES@,busybox or busybox-static,' \
+    -e 's/@BUSYBOX_MIN_VERSION@/1:1.22.0-17~/' \
+	mkinitramfs > debian/initramfs-tools-core/usr/sbin/mkinitramfs
+chmod 755 debian/initramfs-tools-core/usr/sbin/mkinitramfs
+dh_install
+make[1]: Leaving directory '/root/work/initramfs-tools-0.133+deb10u1'
+   dh_installdocs
+   dh_installchangelogs
+   dh_installexamples
+   dh_installman
+   dh_bash-completion
+   dh_lintian
+   dh_perl
+   dh_link
+   dh_strip_nondeterminism
+   dh_compress
+   dh_fixperms
+   dh_missing
+   dh_installdeb
+   debian/rules override_dh_gencontrol
+make[1]: Entering directory '/root/work/initramfs-tools-0.133+deb10u1'
+echo >> debian/initramfs-tools-core.substvars "busybox:Breaks=busybox (<< 1:1.22.0-17~) , busybox-static (<< 1:1.22.0-17~)"
+echo >> debian/initramfs-tools-core.substvars "busybox:Recommends=busybox (>= 1:1.22.0-17~) | busybox-static (>= 1:1.22.0-17~)"
+dh_gencontrol
+make[1]: Leaving directory '/root/work/initramfs-tools-0.133+deb10u1'
+   dh_md5sums
+   dh_builddeb
+dpkg-deb: building package 'initramfs-tools' in '../initramfs-tools_0.133+deb10u1_all.deb'.
+dpkg-deb: building package 'initramfs-tools-core' in '../initramfs-tools-core_0.133+deb10u1_all.deb'.
+ dpkg-genbuildinfo --build=binary
+ dpkg-genchanges --build=binary >../initramfs-tools_0.133+deb10u1_amd64.changes
+dpkg-genchanges: info: binary-only upload (no source code included)
+ dpkg-source --after-build .
+dpkg-buildpackage: info: binary-only upload (no source included)
+
+$ tree
+.
+├── initramfs-tools-0.133+deb10u1
+│   ├── bash_completion.d
+│   │   └── update-initramfs
+│   ├── conf
+│   │   ├── initramfs.conf
+│   │   ├── modules
+│   │   └── update-initramfs.conf
+│   ├── debian
+│   │   ├── changelog
+│   │   ├── compat
+│   │   ├── control
+│   │   ├── copyright
+│   │   ├── files                                 # 
+│   │   ├── initramfs-tools                       # Everything under this was created by build
+│   │   │   ├── DEBIAN
+│   │   │   │   ├── conffiles
+│   │   │   │   ├── control
+│   │   │   │   ├── md5sums
+│   │   │   │   ├── postinst
+│   │   │   │   ├── postrm
+│   │   │   │   ├── preinst
+│   │   │   │   ├── prerm
+│   │   │   │   └── triggers
+│   │   │   ├── etc
+│   │   │   │   ├── initramfs-tools
+│   │   │   │   │   ├── conf.d
+│   │   │   │   │   └── update-initramfs.conf
+│   │   │   │   └── kernel
+│   │   │   │       ├── postinst.d
+│   │   │   │       │   └── initramfs-tools
+│   │   │   │       └── postrm.d
+│   │   │   │           └── initramfs-tools
+│   │   │   └── usr
+│   │   │       ├── sbin
+│   │   │       │   └── update-initramfs
+│   │   │       └── share
+│   │   │           ├── bash-completion
+│   │   │           │   └── completions
+│   │   │           │       └── update-initramfs
+│   │   │           ├── bug
+│   │   │           │   └── initramfs-tools
+│   │   │           │       └── script
+│   │   │           ├── doc
+│   │   │           │   └── initramfs-tools
+│   │   │           │       ├── changelog.gz
+│   │   │           │       ├── copyright
+│   │   │           │       ├── NEWS.Debian.gz
+│   │   │           │       └── TODO
+│   │   │           ├── lintian
+│   │   │           │   └── overrides
+│   │   │           │       └── initramfs-tools
+│   │   │           └── man
+│   │   │               ├── man5
+│   │   │               │   └── update-initramfs.conf.5.gz
+│   │   │               └── man8
+│   │   │                   └── update-initramfs.8.gz
+│   │   ├── initramfs-tools.bash-completion
+│   │   ├── initramfs-tools-core                    # Everything under this was created by build
+│   │   │   ├── DEBIAN
+│   │   │   │   ├── conffiles
+│   │   │   │   ├── control
+│   │   │   │   ├── md5sums
+│   │   │   │   ├── postinst
+│   │   │   │   └── postrm
+│   │   │   ├── etc
+│   │   │   │   └── initramfs-tools
+│   │   │   │       ├── conf.d
+│   │   │   │       ├── hooks
+│   │   │   │       ├── initramfs.conf
+│   │   │   │       └── scripts
+│   │   │   │           ├── init-bottom
+│   │   │   │           ├── init-premount
+│   │   │   │           ├── init-top
+│   │   │   │           ├── local-bottom
+│   │   │   │           ├── local-premount
+│   │   │   │           ├── local-top
+│   │   │   │           ├── nfs-bottom
+│   │   │   │           ├── nfs-premount
+│   │   │   │           ├── nfs-top
+│   │   │   │           └── panic
+│   │   │   ├── usr
+│   │   │   │   ├── bin
+│   │   │   │   │   ├── lsinitramfs
+│   │   │   │   │   └── unmkinitramfs
+│   │   │   │   ├── sbin
+│   │   │   │   │   └── mkinitramfs
+│   │   │   │   └── share
+│   │   │   │       ├── doc
+│   │   │   │       │   └── initramfs-tools-core
+│   │   │   │       │       ├── changelog.gz
+│   │   │   │       │       ├── copyright
+│   │   │   │       │       ├── examples
+│   │   │   │       │       │   ├── example_hook
+│   │   │   │       │       │   ├── example_script
+│   │   │   │       │       │   ├── framebuffer
+│   │   │   │       │       │   └── modules
+│   │   │   │       │       └── NEWS.Debian.gz
+│   │   │   │       ├── initramfs-tools
+│   │   │   │       │   ├── conf.d
+│   │   │   │       │   ├── conf-hooks.d
+│   │   │   │       │   ├── hook-functions
+│   │   │   │       │   ├── hooks
+│   │   │   │       │   │   ├── fsck
+│   │   │   │       │   │   ├── keymap
+│   │   │   │       │   │   ├── resume
+│   │   │   │       │   │   └── thermal
+│   │   │   │       │   ├── init
+│   │   │   │       │   ├── modules
+│   │   │   │       │   ├── modules.d
+│   │   │   │       │   └── scripts
+│   │   │   │       │       ├── functions
+│   │   │   │       │       ├── init-top
+│   │   │   │       │       │   ├── all_generic_ide
+│   │   │   │       │       │   ├── blacklist
+│   │   │   │       │       │   └── keymap
+│   │   │   │       │       ├── local
+│   │   │   │       │       ├── local-premount
+│   │   │   │       │       │   └── resume
+│   │   │   │       │       └── nfs
+│   │   │   │       ├── lintian
+│   │   │   │       │   └── overrides
+│   │   │   │       │       └── initramfs-tools-core
+│   │   │   │       └── man
+│   │   │   │           ├── man5
+│   │   │   │           │   └── initramfs.conf.5.gz
+│   │   │   │           ├── man7
+│   │   │   │           │   └── initramfs-tools.7.gz
+│   │   │   │           └── man8
+│   │   │   │               ├── lsinitramfs.8.gz
+│   │   │   │               ├── mkinitramfs.8.gz
+│   │   │   │               └── unmkinitramfs.8.gz
+│   │   │   └── var
+│   │   │       └── lib
+│   │   │           └── initramfs-tools
+│   │   ├── initramfs-tools-core.debhelper.log         #
+│   │   ├── initramfs-tools-core.dirs
+│   │   ├── initramfs-tools-core.examples
+│   │   ├── initramfs-tools-core.install
+│   │   ├── initramfs-tools-core.lintian-overrides
+│   │   ├── initramfs-tools-core.manpages
+│   │   ├── initramfs-tools-core.postinst
+│   │   ├── initramfs-tools-core.postrm
+│   │   ├── initramfs-tools-core.substvars             #
+│   │   ├── initramfs-tools.debhelper.log              #
+│   │   ├── initramfs-tools.dirs
+│   │   ├── initramfs-tools.install
+│   │   ├── initramfs-tools.lintian-overrides
+│   │   ├── initramfs-tools.maintscript
+│   │   ├── initramfs-tools.manpages
+│   │   ├── initramfs-tools.postinst
+│   │   ├── initramfs-tools.postinst.debhelper         #
+│   │   ├── initramfs-tools.postrm
+│   │   ├── initramfs-tools.postrm.debhelper           #
+│   │   ├── initramfs-tools.preinst
+│   │   ├── initramfs-tools.preinst.debhelper          #
+│   │   ├── initramfs-tools.prerm.debhelper            #
+│   │   ├── initramfs-tools.substvars                  #
+│   │   ├── initramfs-tools.triggers
+│   │   ├── NEWS
+│   │   ├── README
+│   │   ├── rules
+│   │   ├── script
+│   │   ├── source
+│   │   │   └── format
+│   │   ├── tests
+│   │   │   └── control
+│   │   └── TODO
+│   ├── docs
+│   │   ├── example_hook
+│   │   ├── example_script
+│   │   ├── framebuffer
+│   │   └── maintainer-notes.md
+│   ├── hook-functions
+│   ├── hooks
+│   │   ├── fsck
+│   │   ├── keymap
+│   │   ├── resume
+│   │   └── thermal
+│   ├── init
+│   ├── initramfs.conf.5
+│   ├── initramfs-tools.7
+│   ├── kernel
+│   │   ├── postinst.d
+│   │   │   └── initramfs-tools
+│   │   └── postrm.d
+│   │       └── initramfs-tools
+│   ├── lsinitramfs
+│   ├── lsinitramfs.8
+│   ├── mkinitramfs
+│   ├── mkinitramfs.8
+│   ├── scripts
+│   │   ├── functions
+│   │   ├── init-top
+│   │   │   ├── all_generic_ide
+│   │   │   ├── blacklist
+│   │   │   └── keymap
+│   │   ├── local
+│   │   ├── local-premount
+│   │   │   └── resume
+│   │   └── nfs
+│   ├── unmkinitramfs
+│   ├── unmkinitramfs.8
+│   ├── update-initramfs
+│   ├── update-initramfs.8
+│   └── update-initramfs.conf.5
+├── initramfs-tools_0.133+deb10u1_all.deb           #
+├── initramfs-tools_0.133+deb10u1_amd64.buildinfo   #
+├── initramfs-tools_0.133+deb10u1_amd64.changes     #
+├── initramfs-tools_0.133+deb10u1.dsc
+├── initramfs-tools_0.133+deb10u1.tar.xz
+└── initramfs-tools-core_0.133+deb10u1_all.deb      #
+
+77 directories, 134 files
+
+$ dpkg -i initramfs-tools_0.133+deb10u1_all.deb
+(Reading database ... 63259 files and directories currently installed.)
+Preparing to unpack initramfs-tools_0.133+deb10u1_all.deb ...
+Unpacking initramfs-tools (0.133+deb10u1) over (0.133) ...
+dpkg: dependency problems prevent configuration of initramfs-tools:
+ initramfs-tools depends on initramfs-tools-core (= 0.133+deb10u1); however:
+  Version of initramfs-tools-core on system is 0.133.
+
+dpkg: error processing package initramfs-tools (--install):
+ dependency problems - leaving unconfigured
+Processing triggers for man-db (2.8.5-2) ...
+Errors were encountered while processing:
+ initramfs-tools
+
+$ apt install -f
+Reading package lists... Done
+Building dependency tree       
+Reading state information... Done
+Correcting dependencies... Done
+The following additional packages will be installed:
+  initramfs-tools-core
+The following packages will be upgraded:
+  initramfs-tools-core
+1 upgraded, 0 newly installed, 0 to remove and 135 not upgraded.
+1 not fully installed or removed.
+Need to get 99.2 kB of archives.
+After this operation, 0 B of additional disk space will be used.
+Do you want to continue? [Y/n] Y
+Get:1 http://deb.debian.org/debian buster/main amd64 initramfs-tools-core all 0.133+deb10u1 [99.2 kB]
+Fetched 99.2 kB in 0s (215 kB/s)          
+(Reading database ... 63259 files and directories currently installed.)
+Preparing to unpack .../initramfs-tools-core_0.133+deb10u1_all.deb ...
+Unpacking initramfs-tools-core (0.133+deb10u1) over (0.133) ...
+Setting up initramfs-tools-core (0.133+deb10u1) ...
+Setting up initramfs-tools (0.133+deb10u1) ...
+update-initramfs: deferring update (trigger activated)
+Processing triggers for man-db (2.8.5-2) ...
+Processing triggers for initramfs-tools (0.133+deb10u1) ...
+update-initramfs: Generating /boot/initrd.img-4.19.0-5-cloud-amd64
+
+$ cat initramfs-tools-0.133+deb10u1/debian/initramfs-tools.install 
+conf/update-initramfs.conf	etc/initramfs-tools
+update-initramfs	usr/sbin
+debian/script		usr/share/bug/initramfs-tools
+kernel			etc
+
+$ cat initramfs-tools-0.133+deb10u1/debian/initramfs-tools-core.install 
+lsinitramfs		usr/bin
+unmkinitramfs		usr/bin
+init			usr/share/initramfs-tools
+scripts			usr/share/initramfs-tools
+conf/initramfs.conf	etc/initramfs-tools
+hooks			usr/share/initramfs-tools
+hook-functions		usr/share/initramfs-tools
+conf/modules		usr/share/initramfs-tools
+
+$ lsinitramfs --help
+Usage: lsinitramfs [-l] initramfs-file...
+Options:
+  -l   Display long and more verbose listing of initramfs content
+See lsinitramfs(8) for further details.
+
+# List initramfs content of current running kernel
+$ lsinitramfs -l /boot/initrd.img-$(uname -r)
+
+# Low-level tool for generating an initramfs image, a compressed cpio archive
+# mkinitramfs is meant for advanced usage. update-initramfs calls  mkinitramfs  with the relevant parameters
+# /etc/initramfs-tools/initramfs.conf
+# /etc/initramfs-tools/modules: modules that will be put in the generated image and loaded when the system boots
+# /usr/share/initramfs-tools/modules.d/
+# /etc/initramfs-tools/conf.d: allows one to hardcode bootargs at initramfs build time via config snippets
+# /etc/initramfs-tools/DSDT.aml: appended to the initramfs in a way that causes it to be loaded by ACPI
+$ mkinitramfs --help
+Usage: mkinitramfs [option]... -o outfile [version]
+Options:
+  -c compress	Override COMPRESS setting in initramfs.conf.
+  -d confdir	Specify an alternative configuration directory.
+  -k		Keep temporary directory used to make the image.
+  -o outfile	Write to outfile.
+  -r root	Override ROOT setting in initramfs.conf.
+See mkinitramfs(8) for further details.
+
+# 
+$ unmkinitramfs --help
+Usage: unmkinitramfs [-v] initramfs-file directory
+Options:
+  -v   Display verbose messages about extraction
+See unmkinitramfs(8) for further details.
+
+# Manages the initramfs images on your local box
+# /etc/initramfs-tools/update-initramfs.conf
+$ update-initramfs --help
+Usage: update-initramfs {-c|-d|-u} [-k version] [-v] [-b directory]
+Options:
+ -k version	Specify kernel version or 'all'
+ -c		Create a new initramfs
+ -u		Update an existing initramfs
+ -d		Remove an existing initramfs
+ -b directory	Set alternate boot directory
+ -v		Be verbose
+See update-initramfs(8) for further details.
+
+# Hook scripts: used when an initramfs image is created and not included in the image itself
+#               /usr/share/initramfs-tools/hooks and /etc/initramfs-tools/hooks
+# Boot scripts: included in the initramfs image and normally executed during kernel boot in  the
+#               early user-space before the root partition has been mounted
+#               /usr/share/initramfs-tools/scripts/ and /etc/initramfs-tools/scripts/
+# No guarantees are made as to the order in which the different scripts are executed unless the
+# prereqs are setup in the script
+
+# Subdirectories of scripts:
+# init-top: the first scripts to be executed after sysfs and procfs have been mounted. It also runs
+#           the udev hook for populating the /dev tree (udev will keep running until init-bottom).
+# init-premount: happens after modules specified by hooks and /etc/initramfs-tools/modules have
+#                been loaded.
+# local-top OR nfs-top: after these scripts have been executed, the root device node is expected to
+#                       be present (local) or the network interface is expected to be usable (NFS).
+# local-block: called with the name of a local block device. After these scripts have been executed,
+#              that device node should be present. If the local-top or local-block scripts fail to
+#              create the wanted device node, the local-block scripts will be called periodically to
+#              try again.
+# local-premount OR nfs-premount: run after the sanity of the root device has been verified (local)
+#                                 or the network interface has been brought up (NFS), but before the
+#                                 actual root fs has been mounted.
+# local-bottom OR nfs-bottom: run after the rootfs has been mounted (local) or the NFS root share
+#                             has been mounted.
+# init-bottom: the last scripts to be executed before procfs and sysfs are moved to the real rootfs
+#              and execution is turned over to the init binary which should now be found in the
+#              mounted rootfs. udev is stopped.
+
+# Boot parameters
+# /conf/param.conf: allows boot scripts to change exported variables that are listed on top of init.
+#                   Write the new values to it. It will be sourced after an boot script run if it exists.
+
+$ tree /etc/initramfs-tools/
+/etc/initramfs-tools/
+├── conf.d
+├── hooks
+├── initramfs.conf
+├── modules
+├── scripts
+│   ├── init-bottom
+│   ├── init-premount
+│   ├── init-top
+│   ├── local-bottom
+│   ├── local-premount
+│   ├── local-top
+│   ├── nfs-bottom
+│   ├── nfs-premount
+│   ├── nfs-top
+│   └── panic
+└── update-initramfs.conf
+
+$ tree /usr/share/initramfs-tools
+/usr/share/initramfs-tools
+├── conf.d
+├── conf-hooks.d
+│   └── busybox
+├── hook-functions
+├── hooks
+│   ├── dmsetup
+│   ├── fsck
+│   ├── keymap
+│   ├── klibc-utils
+│   ├── kmod
+│   ├── resume
+│   ├── thermal
+│   ├── udev
+│   └── zz-busybox
+├── init
+├── modules
+├── modules.d
+└── scripts
+    ├── functions
+    ├── init-bottom
+    │   └── udev
+    ├── init-top
+    │   ├── all_generic_ide
+    │   ├── blacklist
+    │   ├── keymap
+    │   └── udev
+    ├── local
+    ├── local-premount
+    │   └── resume
+    └── nfs
+

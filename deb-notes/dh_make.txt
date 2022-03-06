@@ -1,0 +1,55 @@
+
+https://manpages.debian.org/testing/dh-make/dh_make.1.en.html
+
+# dh_make takes a standard (or upstream) source package and converts it into a format that will allow you to build Debian packages
+# dh_make must be invoked within a directory containing the source code, which must be named <packagename>-<version>
+# <packagename> and <version> must be all lowercase, digits and dashes
+
+$ apt install dh-make
+
+$ dh_make --help
+usage: dh_make [-h] [-a] [-c <type>] [--copyrightfile <file>] [-d] [--docs]
+               [-e <address>] [-f <file>] [-n] [-o <dir>] [-p <name>]
+               [-t <dir>] [-y] [--createorig] [--with-emacs]
+               [-C <cls> | -s | -i | -l | --python] [-v]
+
+prepare Debian packaging from an original source archive
+
+optional arguments:
+  -h, --help            show this help message and exit
+  -a, --addmissing      reprocess package and add missing files
+  -c <type>, --copyright <type>
+                        use <type> of license in copyright file (apache|artistic|bsd|gpl|gpl2|gpl3|isc|lgpl|lgpl2|lgpl3|mit|custom)
+  --copyrightfile <file>
+                        Template to use for custom copyright
+  -d, --defaultless     skip the default Debian and package class templates
+  --docs                create a separate docs package
+  -e <address>, --email <address>
+                        use <address> as the maintainer e-mail address
+  -f <file>, --file <file>
+                        use <file> as the original source archive
+  -n, --native          the program is Debian native, don't generate .orig
+  -o <dir>, --overlay <dir>
+                        reprocess package using templates in <dir>
+  -p <name>, --packagename <name>
+                        force package name to be <name>
+  -t <dir>, --templates <dir>
+                        apply customizing templates from <dir>
+  -y, --yes             automatic yes to prompts and run non-interactively
+  --createorig          create orig.tar.xz file
+  --with-emacs          add files for emacsen
+  -C <cls>, --packageclass <cls>
+                        set package class (s|i|l|p)
+  -s, --single          set package class to single
+  -i, --indep           set package class to arch-independent
+  -l, --library         set package class to library
+  --python              set package class to python
+  -v, --version         show program's version number and exit
+
+
+The package class:
+indep: indicates that this source package will generate a single binary package that can be shared across all architectures (Architecture: all)
+single: leads to a single binary package that is dependent on the target architecture (Architecture: any)
+library: corresponds to a source package leading to several binary packages
+         useful for shared libraries, since they need to follow strict packaging rules
+

@@ -1,0 +1,15 @@
+[Unit]
+Description=Pre Covid Terminating
+Before=covid-terminate.service covid-post-terminate.service
+ConditionVirtualization=true
+DefaultDependencies=false
+
+[Service]
+Type=oneshot
+ExecStart=/bin/echo "Pre-covid-terminator..."
+RemainAfterExit=yes
+StandardError=tty
+
+[Install]
+RequiredBy=covid-terminator.target
+WantedBy=multi-user.target

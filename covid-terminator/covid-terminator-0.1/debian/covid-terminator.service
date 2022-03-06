@@ -1,0 +1,17 @@
+[Unit]
+Description=Covid Terminator
+ConditionVirtualization=true
+DefaultDependencies=false
+#Requires=covid-pre-terminate.service covid-terminate.service covid-post-terminate.service
+#After=covid-pre-terminate.service covid-terminate.service covid-post-terminate.service
+Requires=covid-terminator.target
+After=covid-terminator.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/covid-terminator
+RemainAfterExit=yes
+StandardError=tty
+
+[Install]
+WantedBy=multi-user.target

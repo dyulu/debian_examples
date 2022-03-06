@@ -1,0 +1,109 @@
+
+https://wiki.debian.org/UsingQuilt
+
+# Quilt manages a stack of patches.
+# Patches are applied incrementally on top of the base tree plus all preceding patches.
+
+$ apt install quilt
+$ tree /usr/share/doc/quilt/
+/usr/share/doc/quilt/
+├── AUTHORS
+├── changelog.Debian.gz
+├── changelog.gz
+├── copyright
+├── examples
+│   └── dpatch2quilt.sh
+├── quilt.html
+├── quilt.pdf
+├── quilt.txt.gz
+├── README.Debian
+├── README.gz
+├── README.MAIL.gz
+├── README.source
+└── TODO
+
+$ quilt --help
+Usage: quilt [--trace[=verbose]] [--quiltrc=XX] command [-h] ...
+       quilt --version
+Commands are:
+	add       fold    mail      refresh  snapshot
+	annotate  fork    new       remove   top
+	applied   graph   next      rename   unapplied
+	delete    grep    patches   revert   upgrade
+	diff      header  pop       series
+	edit      import  previous  setup
+	files     init    push      shell
+
+Global options:
+
+--trace
+	Runs the command in bash trace mode (-x). For internal debugging.
+
+--quiltrc file
+	Use the specified configuration file instead of ~/.quiltrc (or
+	/etc/quilt.quiltrc if ~/.quiltrc does not exist).  See the pdf
+	documentation for details about its possible contents.  The
+	special value "-" causes quilt not to read any configuration
+	file.
+
+--version
+	Print the version number and exit immediately.
+
+$ quilt add -h
+Usage: quilt add [-P patch] {file} ...
+
+Add one or more files to the topmost or named patch.  Files must be
+added to the patch before being modified.  Files that are modified by
+patches already applied on top of the specified patch cannot be added.
+
+-P patch
+	Patch to add files to.
+
+$ quilt push -h
+Usage: quilt push [-afqvm] [--fuzz=N] [--merge[=merge|diff3]] [--leave-rejects] [--color[=always|auto|never]] [--refresh] [num|patch]
+
+Apply patch(es) from the series file.  Without options, the next patch
+in the series file is applied.  When a number is specified, apply the
+specified number of patches.  When a patch name is specified, apply
+all patches up to and including the specified patch.  Patch names may
+include the patches/ prefix, which means that filename completion can
+be used. The mtime of all touched files will be exactly the same to
+prevent time skews.
+
+-a	Apply all patches in the series file.
+-q	Quiet operation.
+-f	Force apply, even if the patch has rejects.
+-v	Verbose operation.
+--fuzz=N
+	Set the maximum fuzz factor (default: 2).
+-m, --merge[=merge|diff3]
+	Merge the patch file into the original files (see patch(1)).
+--leave-rejects
+	Leave around the reject files patch produced, even if the patch
+	is not actually applied.
+--color[=always|auto|never]
+	Use syntax coloring (auto activates it only if the output is a tty).
+--refresh
+	Automatically refresh every patch after it was successfully applied.
+
+$ quilt pop -h
+Usage: quilt pop [-afRqv] [--refresh] [num|patch]
+
+Remove patch(es) from the stack of applied patches.  Without options,
+the topmost patch is removed.  When a number is specified, remove the
+specified number of patches.  When a patch name is specified, remove
+patches until the specified patch end up on top of the stack.  Patch
+names may include the patches/ prefix, which means that filename
+completion can be used.
+
+-a	Remove all applied patches.
+-f	Force remove. The state before the patch(es) were applied will
+	be restored from backup files.
+-R	Always verify if the patch removes cleanly; don't rely on
+	timestamp checks.
+-q	Quiet operation.
+-v	Verbose operation.
+--refresh
+	Automatically refresh every patch before it gets unapplied.
+
+

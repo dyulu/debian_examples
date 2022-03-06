@@ -1,0 +1,16 @@
+
+https://man7.org/linux/man-pages/man7/debhelper.7.html
+
+Provide a collection of tools used in debian/rules to automate various common aspects of building a package
+/usr/share/doc/debhelper/examples/
+
+dh_* [-v] [-a] [-i] [--no-act] [-ppackage] [-Npackage] [-Ptmpdir]
+
+-v, --verbose
+--no-act: used with -v to output what it would have done
+-a, --arch: Act on architecture dependent packages that should be built for the DEB_HOST_ARCH architecture
+-i, --indep: Act on all architecture independent packages
+-ppackage, --package=package: Act on the package named package
+-Npackage, --no-package=package: Do not act on the specified package even if an -a, -i, or -p lists the package
+-Ptmpdir, --tmpdir=tmpdir: Use tmpdir for package build directory. Default is debian/package
+
