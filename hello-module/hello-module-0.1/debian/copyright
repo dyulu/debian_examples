@@ -1,0 +1,9 @@
+Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
+
+Files: *
+Copyright: 2022, Covid Terminator Inc.
+License: Proprietary
+
+License: Proprietary
+ All rights reserved.  Any use, modification, or distribution is
+ prohibited without prior written consent from Covid Terminator, Inc

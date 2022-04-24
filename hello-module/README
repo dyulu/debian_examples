@@ -1,0 +1,104 @@
+
+# The Linux Kernel Module Programming Guide
+https://github.com/sysprog21/lkmpg
+https://www.kernel.org/doc/html/latest/kbuild/modules.html
+
+# /lib/modules/<kernel-ver>/
+
+# Running kernel
+$ uname -r
+4.19.0-5-cloud-amd64
+
+# Build module for a different kernel, so need to install linux-headers for that kernel
+$ apt search linux-headers-4.19 | grep cloud-amd64
+linux-headers-4.19.0-18-cloud-amd64/oldstable,oldstable 4.19.208-1 amd64
+  Header files for Linux 4.19.0-18-cloud-amd64
+linux-headers-4.19.0-19-cloud-amd64/oldstable 4.19.232-1 amd64
+  Header files for Linux 4.19.0-19-cloud-amd64
+linux-headers-4.19.0-20-cloud-amd64/oldstable,oldstable 4.19.235-1 amd64
+  Header files for Linux 4.19.0-20-cloud-amd64
+
+$ apt install linux-headers-4.19.0-20-cloud-amd64
+Reading package lists... Done
+Building dependency tree       
+Reading state information... Done
+The following additional packages will be installed:
+  linux-headers-4.19.0-20-common linux-kbuild-4.19
+The following NEW packages will be installed:
+  linux-headers-4.19.0-20-cloud-amd64 linux-headers-4.19.0-20-common
+The following packages will be upgraded:
+  linux-kbuild-4.19
+1 upgraded, 2 newly installed, 0 to remove and 152 not upgraded.
+Need to get 10.2 MB of archives.
+After this operation, 54.4 MB of additional disk space will be used.
+Do you want to continue? [Y/n] Y
+Get:1 http://deb.debian.org/debian buster/main amd64 linux-headers-4.19.0-20-common all 4.19.235-1 [8,545 kB]
+Get:2 http://deb.debian.org/debian buster/main amd64 linux-kbuild-4.19 amd64 4.19.235-1 [824 kB]
+Get:3 http://deb.debian.org/debian buster/main amd64 linux-headers-4.19.0-20-cloud-amd64 amd64 4.19.235-1 [839 kB]
+Fetched 10.2 MB in 2s (4,667 kB/s)                       
+Selecting previously unselected package linux-headers-4.19.0-20-common.
+(Reading database ... 64008 files and directories currently installed.)
+Preparing to unpack .../linux-headers-4.19.0-20-common_4.19.235-1_all.deb ...
+Unpacking linux-headers-4.19.0-20-common (4.19.235-1) ...
+Preparing to unpack .../linux-kbuild-4.19_4.19.235-1_amd64.deb ...
+Unpacking linux-kbuild-4.19 (4.19.235-1) over (4.19.37-5) ...
+Selecting previously unselected package linux-headers-4.19.0-20-cloud-amd64.
+Preparing to unpack .../linux-headers-4.19.0-20-cloud-amd64_4.19.235-1_amd64.deb ...
+Unpacking linux-headers-4.19.0-20-cloud-amd64 (4.19.235-1) ...
+Setting up linux-kbuild-4.19 (4.19.235-1) ...
+Setting up linux-headers-4.19.0-20-common (4.19.235-1) ...
+Setting up linux-headers-4.19.0-20-cloud-amd64 (4.19.235-1) ...
+
+# dpkg-buildpackage -rfakeroot -Tclean
+~/debian_examples/hello-module/hello-module-0.1# debuild -rfakeroot -b -uc -us 
+
+root@scspa2565872001:~/debian_examples/hello-module/hello-module-0.1# tree ..
+..
+├── hello-module-0.1
+│   ├── debian
+│   │   ├── changelog
+│   │   ├── compat
+│   │   ├── control
+│   │   ├── copyright
+│   │   ├── debhelper-build-stamp
+│   │   ├── files
+│   │   ├── hello-module
+│   │   │   ├── DEBIAN
+│   │   │   │   ├── control
+│   │   │   │   ├── md5sums
+│   │   │   │   ├── postinst
+│   │   │   │   └── postrm
+│   │   │   ├── lib
+│   │   │   │   └── modules
+│   │   │   │       └── 4.19.0-20-cloud-amd64
+│   │   │   │           └── extra
+│   │   │   │               └── hello.ko
+│   │   │   └── usr
+│   │   │       └── share
+│   │   │           └── doc
+│   │   │               └── hello-module
+│   │   │                   ├── changelog.gz
+│   │   │                   └── copyright
+│   │   ├── hello-module.postinst.debhelper
+│   │   ├── hello-module.postrm.debhelper
+│   │   ├── hello-module.substvars
+│   │   └── rules
+│   └── src
+│       ├── hello.c
+│       ├── hello.ko
+│       ├── hello.mod.c
+│       ├── hello.mod.o
+│       ├── hello.o
+│       ├── Makefile
+│       ├── modules.order
+│       └── Module.symvers
+├── hello-module_0.1_amd64.build
+├── hello-module_0.1_amd64.buildinfo
+├── hello-module_0.1_amd64.changes
+├── hello-module_0.1_amd64.deb
+├── hello-module_0.1.orig.tar.gz
+└── README
+
+13 directories, 31 files
+
+

@@ -1,0 +1,14 @@
+Source: hello-module
+Section: unknown
+Priority: optional
+Maintainer: Covid Terminator <covid-terminator@covid-terminator.com>
+Build-Depends: debhelper (>= 9)
+Standards-Version: 4.5.1
+Homepage: 
+Rules-Requires-Root: no
+
+Package: hello-module
+Architecture: any
+Multi-Arch: foreign
+Depends: ${misc:Depends}
+Description: External module example
