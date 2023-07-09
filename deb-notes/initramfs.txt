@@ -64,3 +64,181 @@ Populating initramfs:
 CONFIG_INITRAMFS_SOURCE can be used to specify a source for initramfs archive, which will automatically be incorporated
     into the resulting kernel binary
 
+
+########## Stop bootup process at initramfs, add the following to LINUX bootargs
+break=top
+break=modules
+break=premount
+break=mount
+break=mountroot
+break=cpioroot
+break=bottom
+break=init
+
+############ Module blacklisting
+# Will not prevent another process from requesting the module addition during boot or runtime
+# /etc/modprobe.d/blacklist.conf 
+blacklist module_name
+
+# Blacklist with fake install
+# /etc/modprobe.d/<module_name>.conf
+install <module_name> /bin/true
+
+# /etc/modprobe.conf supersedes anything in /etc/modprobe.d/* unless you add include /etc/modprobe.d there
+# Modules listed in /etc/initramfs-tools/modules aren't subject to blacklists
+# Modules listed in /etc/initramfs-tools/modules and /usr/share/initramfs-tools/modules.d/* are always
+#    included in the initramfs, and are loaded early in the boot process.
+
+############# /etc/initramfs-tools/initramfs.conf
+# initramfs.conf
+# Configuration file for mkinitramfs(8). See initramfs.conf(5).
+#
+# Note that configuration options from this file can be overridden
+# by config files in the /etc/initramfs-tools/conf.d directory.
+
+# MODULES: [ most | netboot | dep | list ]
+#
+# most - Add most filesystem and all harddrive drivers.
+# dep - Try and guess which modules to load.
+# netboot - Add the base modules, network modules, but skip block devices.
+# list - Only include modules from the 'additional modules' list
+
+# BUSYBOX: [ y | n | auto ]
+#
+# Use busybox shell and utilities.  If set to n, klibc utilities will be used.
+# If set to auto (or unset), busybox will be used if installed and klibc will
+# be used otherwise.
+
+# KEYMAP: [ y | n ]
+#
+# Load a keymap during the initramfs stage.
+
+#
+# COMPRESS: [ gzip | bzip2 | lz4 | lzma | lzop | xz | zstd ]
+#
+
+# DEVICE: ...
+#
+# Specify a specific network interface, like eth0
+# Overridden by optional ip= or BOOTIF= bootarg
+
+# NFSROOT: [ auto | HOST:MOUNT ]
+
+# RUNSIZE: ...
+#
+# The size of the /run tmpfs mount point, like 256M or 10%
+# Overridden by optional initramfs.runsize= bootarg
+
+# FSTYPE: ...
+#
+# The filesystem type(s) to support, or "auto" to use the current root
+# filesystem type
+
+############# /etc/initramfs-tools/update-initramfs.conf
+# Configuration file for update-initramfs(8)
+
+# update_initramfs [ yes | all | no ]
+#
+# Default is yes
+# If set to all update-initramfs will update all initramfs
+# If set to no disables any update to initramfs beside kernel upgrade
+
+# backup_initramfs [ yes | no ]
+#
+# Default is no
+# If set to no leaves no .bak backup files.
+
+############
+Many systems are set up to use an initrd or initramfs. These are filesystem images that are loaded
+by the bootloader and made available to the kernel before it mounts the root partition. This allows
+drivers that are necessary to mount the root partition (disk drivers, filesystem drivers, device
+mapper or logical volume drivers, …) to be compiled as modules and loaded from the initrd/initramfs.
+
+########## Add scripts/other contents to initramfs
+
+# If your package installs a script in "/usr/share/initramfs-tools/scripts/init-top/" in the root filesystem, 
+# mkinitramfs will copy it to "/scripts/init-top/" in the initramfs
+
+# https://salsa.debian.org/kernel-team/initramfs-tools/-/blob/master/docs/example_script
+# https://salsa.debian.org/kernel-team/initramfs-tools/-/blob/master/mkinitramfs
+# add existant boot scripts
+for b in $(cd /usr/share/initramfs-tools/scripts/ && find . \
+	-regextype posix-extended -regex '.*/[[:alnum:]\._-]+$' -type f); do
+	[ -d "${DESTDIR}/scripts/$(dirname "${b}")" ] \
+		|| mkdir -p "${DESTDIR}/scripts/$(dirname "${b}")"
+	cp -p "/usr/share/initramfs-tools/scripts/${b}" \
+		"${DESTDIR}/scripts/$(dirname "${b}")/"
+done
+
+# https://salsa.debian.org/kernel-team/initramfs-tools/-/blob/master/docs/example_hook
+# https://salsa.debian.org/kernel-team/initramfs-tools/-/blob/master/mkinitramfs
+# If you need your own hooks to copy files in a particular way, you'd install those in /usr/share/initramfs-tools/hooks/.
+run_scripts /usr/share/initramfs-tools/hooks
+run_scripts "${CONFDIR}"/hooks
+
+# https://salsa.debian.org/kernel-team/initramfs-tools/-/blob/master/mkinitramfs
+# initramfs script run ORDER
+CONFDIR="/etc/initramfs-tools"
+# cache boot run order
+for b in $(cd "${DESTDIR}/scripts" && find . -mindepth 1 -type d); do
+	cache_run_scripts "${DESTDIR}" "/scripts/${b#./}"
+done
+# https://salsa.debian.org/kernel-team/initramfs-tools/-/blob/master/hook-functions
+get_prereq_pairs()
+{
+	set_initlist
+	for gp_x in ${initlist:-}; do
+		echo "${gp_x} ${gp_x}"
+		gp_src="$(get_source "$gp_x")"
+		prereqs=$("${gp_src}" prereqs)
+		for prereq in ${prereqs}; do
+			echo "${prereq} ${gp_x}"
+		done
+	done
+}
+# cache boot scripts order
+cache_run_scripts()
+{
+	DESTDIR=${1}
+	scriptdir=${2}
+	initdir=${DESTDIR}${scriptdir}
+	[ ! -d "${initdir}" ] && return
+
+	true > "${initdir}/ORDER"
+	runlist=$(get_prereq_pairs | tsort)
+	for crs_x in ${runlist}; do
+		[ -f "${initdir}/${crs_x}" ] || continue
+		echo "${scriptdir}/${crs_x} \"\$@\"" >> "${initdir}/ORDER"
+		echo "[ -e /conf/param.conf ] && . /conf/param.conf" >> "${initdir}/ORDER"
+	done
+}
+
+
+# How package udev added scripts/init-top/udev
+# Which package provided scripts/init-top/udev
+$ dpkg -S /usr/share/initramfs-tools/scripts/init-top/udev
+udev: /usr/share/initramfs-tools/scripts/init-top/udev
+
+# Package udev status
+$ dpkg -s udev
+Package: udev
+Status: install ok installed
+Priority: important
+Section: admin
+Installed-Size: 8961
+Maintainer: Debian systemd Maintainers <pkg-systemd-maintainers@lists.alioth.debian.org>
+Architecture: amd64
+Multi-Arch: foreign
+Source: systemd
+Version: 247.3-7+deb11u1
+Replaces: systemd (<< 233-4)
+Depends: libacl1 (>= 2.2.23), libblkid1 (>= 2.24), libc6 (>= 2.30), libkmod2 (>= 5~), libselinux1 (>= 3.1~), adduser, dpkg (>= 1.19.3) | systemd-sysv, libudev1 (= 247.3-7+deb11u1), util-linux (>= 2.27.1)
+Breaks: systemd (<< 233-4)
+Conflicts: hal
+Conffiles:
+ /etc/init.d/udev e9424814d107af7d8f58a22b1011810a
+ /etc/udev/udev.conf bf60be80a4cc51271a1618edf5a6d66f
+Description: /dev/ and hotplug management daemon
+ udev is a daemon which dynamically creates and removes device nodes from
+ /dev/, handles hotplug events and loads drivers at boot time.
+Homepage: https://www.freedesktop.org/wiki/Software/systemd
