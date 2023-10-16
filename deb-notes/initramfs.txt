@@ -89,6 +89,60 @@ install <module_name> /bin/true
 # Modules listed in /etc/initramfs-tools/modules and /usr/share/initramfs-tools/modules.d/* are always
 #    included in the initramfs, and are loaded early in the boot process.
 
+###### initramfs modules: /conf/modules
+File /etc/modprobe.d/blacklist.conf contents copied to /conf/modules when updating initramfs image
+
+https://salsa.debian.org/kernel-team/initramfs-tools/-/blob/master/scripts/functions
+
+# Load custom modules first
+load_modules()
+{
+	if [ -e /conf/modules ]; then
+		while read -r m; do
+			# Skip empty lines
+			if [ -z "$m" ];  then
+				continue
+			fi
+			# Skip comments - d?ash removes whitespace prefix
+			com=$(printf "%.1s" "${m}")
+			if [ "$com" = "#" ]; then
+				continue
+			fi
+			# shellcheck disable=SC2086
+			/sbin/modprobe $m
+		done < /conf/modules
+	fi
+}
+
+######
+
+/etc/modprobe.d/blacklist.conf:
+    blacklist kernel modules, but does not affect autoloading of modules by the Linux kernel
+/etc/modprobe.conf:
+    supersedes anything in /etc/modprobe.d/* (unless you add include /etc/modprobe.d)
+/etc/modprobe.d/<modulename>.conf:
+    block loading of <modulename>:
+        blacklist <modulename>
+        sudo depmod -ae
+        update-initramfs -u
+    blacklist with fake install:
+        install <modulename> /bin/true
+/etc/modules:
+    contains the names of kernel modules that are to be loaded at boot time
+/etc/initramfs-tools/modules:
+    list of modules that you want to include in your initramfs
+    modules here aren't subject to blacklists
+    sudo update-initramfs
+
+In distributions where systemd is not available, SysV init scripts load modules listed in:
+    /etc/modules or
+    /etc/modules.conf (from the kmod job).
+
+In distributions where systemd is available, systemd-modules-load.service loads kernel modules lists in:
+    /etc/modules-load.d/*.conf
+    /run/modules-load.d/*.conf
+    /usr/lib/modules-load.d/*.conf
+
 ############# /etc/initramfs-tools/initramfs.conf
 # initramfs.conf
 # Configuration file for mkinitramfs(8). See initramfs.conf(5).
